@@ -11,10 +11,12 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^26.1.0"
+    "@types/node": "^26.1.0",
+    "@types/nodemailer": "^8.0.1"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^9.0.3"
   }
 }
