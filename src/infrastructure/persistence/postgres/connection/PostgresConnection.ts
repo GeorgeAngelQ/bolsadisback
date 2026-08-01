@@ -9,6 +9,7 @@ const pool = new Pool({
    max: parseInt(process.env.DB_POOL_MAX!),
    idleTimeoutMillis: 30000,
    connectionTimeoutMillis: 5000,
+   options: `-c search_path=${process.env.DB_SCHEMA}`
 })
 
 export async function query <T extends QueryResultRow>(
