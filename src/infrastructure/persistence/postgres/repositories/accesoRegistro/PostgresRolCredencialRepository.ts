@@ -274,7 +274,7 @@ export class PostgresPreferenciaAccesibilidadRepository implements IPreferenciaA
 
    async update(preferencia: PreferenciaAccesibilidad): Promise<void> {
       await execute(`
-         UPDATE preferencia_accesbilidad SET
+         UPDATE preferencia_accesibilidad SET
             tipo_contraste = $1,
             tamano_texto = $2,
             subtitulos_activos = $3,

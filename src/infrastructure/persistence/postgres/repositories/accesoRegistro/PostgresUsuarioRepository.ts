@@ -9,9 +9,9 @@ export class PostgresUsuarioRepository implements IUsuarioRepository {
       return new Usuario({
          id: row.id_usuario,
          correo: new Email(row.correo),
-         contrasenaHash: row.contrasena_hash,
+         contrasenaHash: row.contrasena,
          estado: row.estado,
-         intentosFallidos: row.intentos_fallido,
+         intentosFallidos: row.intentos_fallidos,
          fechaRegistro: row.fecha_registro,
          ultimoAcceso: row.ultimo_acceso ?? undefined
       })
@@ -27,7 +27,8 @@ export class PostgresUsuarioRepository implements IUsuarioRepository {
             ultimo_acceso, 
             estado, 
             intentos_fallidos
-            FROM usuario WHERE id_usuario = $1`, 
+         FROM usuario 
+         WHERE id_usuario = $1`, 
             [id],
       )
       return row ? this.toEntity(row) : null 
@@ -43,7 +44,8 @@ export class PostgresUsuarioRepository implements IUsuarioRepository {
             ultimo_acceso, 
             estado, 
             intentos_fallidos
-            FROM usuario WHERE correo=$1`, 
+         FROM usuario 
+         WHERE correo=$1`, 
             [correo.toLocaleLowerCase()],
       )
       return row ? this.toEntity(row) : null 
@@ -52,7 +54,9 @@ export class PostgresUsuarioRepository implements IUsuarioRepository {
    async existsByCorreo(correo: string): Promise<boolean> {
       const row = await queryOne<any>(
          `SELECT EXISTS (
-            SELECT 1 FROM usuario WHERE correo=$1
+            SELECT 1 
+            FROM usuario 
+            WHERE correo=$1
          )`, [correo.toLowerCase()],
       )
       return row?.exists ?? false
@@ -63,8 +67,8 @@ export class PostgresUsuarioRepository implements IUsuarioRepository {
          `INSERT INTO usuario
          (correo,contrasena,fecha_registro,estado,intentos_fallidos)
          VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-         [usuario.getCorreo, usuario.getContrasenaHash, usuario.fechaRegistro, 
-         usuario.getIntentosFallidos]
+         [usuario.getCorreo(), usuario.getContrasenaHash(), usuario.fechaRegistro, usuario.getEstado(),
+         usuario.getIntentosFallidos()]
       )
       return this.toEntity(row!)
    }
@@ -76,15 +80,16 @@ export class PostgresUsuarioRepository implements IUsuarioRepository {
             ultimo_acceso = $2,
             estado = $3,
             intentos_fallidos = $4
-            WHERE id_usuario = $5`, 
-         [usuario.getContrasenaHash, usuario.getUltimoAcceso, usuario.getEstado, 
-         usuario.getIntentosFallidos, usuario.id]
+         WHERE id_usuario = $5`, 
+         [usuario.getContrasenaHash(), usuario.getUltimoAcceso(), usuario.getEstado(), 
+         usuario.getIntentosFallidos(), usuario.id]
       )
    }
 
    async countAdministradoresActivos(): Promise<number> {
-      const row = await queryOne<any>(
-         `SELECT COUNT(*) 
+      const row = await queryOne<any>(`
+         SELECT 
+            COUNT(*) 
          FROM administrador a
          INNER JOIN usuario u ON u.id_usuario=a.id_usuario 
          WHERE u.estado='activo'`,
