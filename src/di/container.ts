@@ -1,79 +1,180 @@
 import { buildModulo1Container } from './accesoRegistro.container'
+import { buildModulo2Container } from './gestionPerfil.container'
 
-export function buildContainer(repos: {
+//Mod 1
+import { 
+  PostgresAdministradorRepository, 
+  PostgresCandidatoRepository, 
+  PostgresEmpresaEmpleadoraRepository, 
+  PostgresIntermediadorRepository 
+} from '@infrastructure/persistence/postgres/repositories/accesoRegistro/PostgresActoresRepository'
+import { 
+  PostgresCredencialAccesoRepository, 
+  PostgresPreferenciaAccesibilidadRepository, 
+  PostgresRolRepository 
+} from '@infrastructure/persistence/postgres/repositories/accesoRegistro/PostgresRolCredencialRepository'
+import { 
+  PostgresUsuarioRepository 
+} from '@infrastructure/persistence/postgres/repositories/accesoRegistro/PostgresUsuarioRepository'
 
-    // Módulo 1
-  usuarioRepo: any
-  candidatoRepo: any
-  empresaRepo: any
-  intermediadorRepo: any
-  administradorRepo: any
-  credencialRepo: any
-  preferenciaRepo: any
-  rolRepo: any
+//Mod 2
+import { 
+  PostgresAjusteRazonableRequeridoRepository,
+  PostgresCertificadoDiscapacidadRepository,
+  PostgresCurriculumVitaeRepository,
+  PostgresExperienciaLaboralRepository,
+  PostgresFormacionAcademicaRepository,
+  PostgresHabilidadRepository,
+  PostgresPerfilCandidatoRepository, 
+  PostgresPerfilEmpresaRepository, 
+  PostgresTipoDiscapacidadRepository
+} from '@infrastructure/persistence/postgres/repositories/gestionPerfil/PostgresPerfilRepositories'
+
+//Mod 3
+import { 
+  PostgresAjusteRazonableDisponibleRepository, 
+  PostgresSancionEmpresaRepository, 
+  PostgresVacanteRepository 
+} from '@infrastructure/persistence/postgres/repositories/gestionVacante/PostgresVacanteRepositories'
+
+//Mod 4
+import { 
+  PostgresAlertaEmpleoRepository,
+  PostgresPostulacionRepository,
+  PostgresRecomendacionVacanteRepository,
+  PostgresVacanteGuardadaRepository
+} from '@infrastructure/persistence/postgres/repositories/busquedaPostulacion/PostgresPostulacionRepositories'
+
+//Mod 5
+import { 
+  PostgresAsignacionIntermediadorRepository, 
+  PostgresCoordinacionEntrevistaRepository, 
+  PostgresDerivacionServicioRepository, 
+  PostgresObservacionCandidatoRepository, 
+  PostgresSeguimientoPostulacionRepository 
+} from '@infrastructure/persistence/postgres/repositories/intermediacion/PostgresIntermediacionRepositories'
+
+// Mod 6
+import { 
+  PostgresConversacionRepository, 
+  PostgresMensajeInternoRepository, 
+  PostgresNotificacionRepository, 
+  PostgresPlantillaNotificacionRepository 
+} from '@infrastructure/persistence/postgres/repositories/comunicacion/PostgresComunicacionRepositories'
+
+//Mod 7
+import { 
+  PostgresConfiguracionAccesibilidadRepository, 
+  PostgresContenidoInformativoRepository, 
+  PostgresEventoAuditoriaRepository 
+} from '@infrastructure/persistence/postgres/repositories/administracion/PostgresAdministracionRepositories'
+
+//Mod 8
+import { 
+  PostgresDashboardIndicadoresRepository, 
+  PostgresReporteCuotaInclusionRepository, 
+  PostgresReporteGestionIntermediadorRepository, 
+  PostgresReporteInclusionLaboralRepository 
+} from '@infrastructure/persistence/postgres/repositories/reportes/PostgresReporteRepositories'
+
+export function buildContainer() {
+
+  // Módulo 1
+  const usuarioRepo = new PostgresUsuarioRepository()
+  const candidatoRepo = new PostgresCandidatoRepository()
+  const empresaRepo = new PostgresEmpresaEmpleadoraRepository()
+  const intermediadorRepo = new PostgresIntermediadorRepository()
+  const administradorRepo = new PostgresAdministradorRepository()
+  const credencialRepo = new PostgresCredencialAccesoRepository()
+  const preferenciaRepo = new PostgresPreferenciaAccesibilidadRepository()
+  const rolRepo = new PostgresRolRepository()
 
   // Módulo 2
-  perfilCandidatoRepo: any
-  perfilEmpresaRepo: any
-  cvRepo: any
-  habilidadRepo: any
-  experienciaRepo: any
-  formacionRepo: any
-  tipoDiscapacidadRepo: any
-  ajusteRequeridoRepo: any
-  certificadoRepo: any
+  const perfilCandidatoRepo = new PostgresPerfilCandidatoRepository()
+  const perfilEmpresaRepo = new PostgresPerfilEmpresaRepository()
+  const cvRepo = new PostgresCurriculumVitaeRepository()
+  const habilidadRepo = new PostgresHabilidadRepository()
+  const experienciaRepo = new PostgresExperienciaLaboralRepository()
+  const formacionRepo = new PostgresFormacionAcademicaRepository()
+  const tipoDiscapacidadRepo = new PostgresTipoDiscapacidadRepository()
+  const ajusteRequeridoRepo = new PostgresAjusteRazonableRequeridoRepository()
+  const certificadoRepo = new PostgresCertificadoDiscapacidadRepository()
 
   // Módulo 3
-  vacanteRepo: any
-  ajusteDisponibleRepo: any
-  sancionRepo: any
-  reporteContenidoRepo: any
+  const vacanteRepo = new PostgresVacanteRepository()
+  const ajusteDisponibleRepo = new PostgresAjusteRazonableDisponibleRepository()
+  const sancionRepo = new PostgresSancionEmpresaRepository()
 
   // Módulo 4
-  postulacionRepo: any
-  vacanteGuardadaRepo: any
-  alertaRepo: any
-  recomendacionRepo: any
+  const postulacionRepo = new PostgresPostulacionRepository()
+  const vacanteGuardadaRepo = new PostgresVacanteGuardadaRepository()
+  const alertaRepo = new PostgresAlertaEmpleoRepository()
+  const recomendacionRepo = new PostgresRecomendacionVacanteRepository()
 
   // Módulo 5
-  asignacionRepo: any
-  observacionRepo: any
-  seguimientoRepo: any
-  derivacionRepo: any
-  entrevistaRepo: any
+  const asignacionRepo = new PostgresAsignacionIntermediadorRepository()
+  const observacionRepo = new PostgresObservacionCandidatoRepository()
+  const seguimientoRepo = new PostgresSeguimientoPostulacionRepository()
+  const derivacionRepo = new PostgresDerivacionServicioRepository()
+  const entrevistaRepo = new PostgresCoordinacionEntrevistaRepository()
 
   // Módulo 6
-  conversacionRepo: any
-  mensajeRepo: any
-  notificacionRepo: any
-  plantillaRepo: any
+  const conversacionRepo = new PostgresConversacionRepository()
+  const mensajeRepo = new PostgresMensajeInternoRepository()
+  const notificacionRepo = new PostgresNotificacionRepository()
+  const plantillaRepo = new PostgresPlantillaNotificacionRepository()
 
   // Módulo 7
-  contenidoRepo: any
-  configAccesibilidadRepo: any
-  auditoriaRepo: any
-  mantenimientoRepo: any
+  const contenidoRepo = new PostgresContenidoInformativoRepository()
+  const configAccesibilidadRepo = new PostgresConfiguracionAccesibilidadRepository()
+  const auditoriaRepo = new PostgresEventoAuditoriaRepository()
 
   // Módulo 8
-  reporteCuotaRepo: any
-  reporteGestionRepo: any
-  reporteGlobalRepo: any
-  dashboardRepo: any
+  const reporteCuotaRepo = new PostgresReporteCuotaInclusionRepository()
+  const reporteGestionRepo = new PostgresReporteGestionIntermediadorRepository()
+  const reporteGlobalRepo = new PostgresReporteInclusionLaboralRepository()
+  const dashboardRepo = new PostgresDashboardIndicadoresRepository()
   
-}) {
   const m1 = buildModulo1Container({
-    usuarioRepo: repos.usuarioRepo,
-    candidatoRepo: repos.candidatoRepo,
-    empresaRepo: repos.empresaRepo,
-    intermediadorRepo: repos.intermediadorRepo,
-    administradorRepo: repos.administradorRepo,
-    credencialRepo: repos.credencialRepo,
-    preferenciaRepo: repos.preferenciaRepo,
-    rolRepo: repos.rolRepo,
-    notificacionRepo: repos.notificacionRepo,
-    auditoriaRepo: repos.auditoriaRepo,
+    usuarioRepo,
+    candidatoRepo,
+    empresaRepo,
+    intermediadorRepo,
+    administradorRepo,
+    credencialRepo,
+    preferenciaRepo,
+    rolRepo,
+    notificacionRepo,
+    auditoriaRepo,
   })
-  return { m1 }
+
+  const m2 = buildModulo2Container({
+    perfilCandidatoRepo,
+    perfilEmpresaRepo,
+    cvRepo,
+    habilidadRepo,
+    experienciaRepo,
+    formacionRepo,
+    tipoDiscapacidadRepo,
+    ajusteRequeridoRepo,
+    certificadoRepo,
+    notificacionRepo,
+    auditoriaRepo,
+  })
+
+  const m3 = {
+    vacanteRepo,
+    ajusteDisponibleRepo,
+    sancionRepo,
+    perfilEmpresaRepo,
+    tipoDiscapacidadRepo,
+    perfilCandidatoRepo,
+    ajusteRequeridoRepo,
+    contenidoRepo, 
+    notificacionRepo,
+    auditoriaRepo,
+  }
+  return { m1, m2, m3 }
 }
 
 export type AppContainer = ReturnType<typeof buildContainer>
