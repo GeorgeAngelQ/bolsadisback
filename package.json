@@ -19,12 +19,15 @@
     "@types/node": "^26.1.0",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.20.0",
+    "@types/swagger-jsdoc": "^6.0.4",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.4",
+    "@scalar/express-api-reference": "^0.10.12",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -34,6 +37,7 @@
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^9.0.3",
     "pg": "^8.22.0",
+    "swagger-jsdoc": "^6.3.0",
     "zod": "^3.22.4"
   }
 }
