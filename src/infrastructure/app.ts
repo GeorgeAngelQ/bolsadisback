@@ -39,7 +39,11 @@ app.use(
   app.use('/docs', apiReference({
     spec: {
       url: '/openapi.json'
-    }
+    },
+    authentication: {
+      preferredSecurityScheme: 'bearerAuth',
+    },
+    persistAuth: true,
   }),
 
   )

@@ -18,6 +18,7 @@
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
+      "@docs/*": ["src/docs/*"],
       "@di/*": ["src/di/*"],
       "@domain/*": ["src/domain/*"],
       "@application/*": ["src/application/*"],
