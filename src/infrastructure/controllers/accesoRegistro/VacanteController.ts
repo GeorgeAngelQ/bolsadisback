@@ -88,45 +88,45 @@ export class AprobacionVacanteController {
   }
 }
 
-export class ReporteContenidoController {
-  constructor(private readonly c: Modulo3Container) {}
+// export class ReporteContenidoController {
+//   constructor(private readonly c: Modulo3Container) {}
 
-  registrar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const result = await this.c.registrarReporte.execute({
-        idUsuario: req.usuario!.idUsuario,
-        idContenido: Number(req.params.idContenido),
-        tipoContenido: req.params.tipo as 'vacante' | 'empresa',
-        motivo: req.body.motivo,
-        descripcion: req.body.descripcion,
-      })
-      res.status(201).json({ data: result, mensaje: 'Reporte enviado. Será revisado en 72 horas' })
-    } catch (err) { next(err) }
-  }
+//   registrar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+//     try {
+//       const result = await this.c.registrarReporte.execute({
+//         idUsuario: req.usuario!.idUsuario,
+//         idContenido: Number(req.params.idContenido),
+//         tipoContenido: req.params.tipo as 'vacante' | 'empresa',
+//         motivo: req.body.motivo,
+//         descripcion: req.body.descripcion,
+//       })
+//       res.status(201).json({ data: result, mensaje: 'Reporte enviado. Será revisado en 72 horas' })
+//     } catch (err) { next(err) }
+//   }
 
-  desestimar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      await this.c.desestimarReporte.execute({
-        idReporte: Number(req.params.id),
-        idAdministrador: req.usuario!.idUsuario,
-      })
-      res.status(200).json({ mensaje: 'Reporte desestimado' })
-    } catch (err) { next(err) }
-  }
+//   desestimar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+//     try {
+//       await this.c.desestimarReporte.execute({
+//         idReporte: Number(req.params.id),
+//         idAdministrador: req.usuario!.idUsuario,
+//       })
+//       res.status(200).json({ mensaje: 'Reporte desestimado' })
+//     } catch (err) { next(err) }
+//   }
 
-  retirarContenido = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      await this.c.retirarContenido.execute({
-        idReporte: Number(req.params.id),
-        idContenido: Number(req.body.idContenido),
-        tipoContenido: req.body.tipoContenido,
-        idAdministrador: req.usuario!.idUsuario,
-        idUsuarioPropietario: Number(req.body.idUsuarioPropietario),
-      })
-      res.status(200).json({ mensaje: 'Contenido retirado y propietario notificado' })
-    } catch (err) { next(err) }
-  }
-}
+//   retirarContenido = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+//     try {
+//       await this.c.retirarContenido.execute({
+//         idReporte: Number(req.params.id),
+//         idContenido: Number(req.body.idContenido),
+//         tipoContenido: req.body.tipoContenido,
+//         idAdministrador: req.usuario!.idUsuario,
+//         idUsuarioPropietario: Number(req.body.idUsuarioPropietario),
+//       })
+//       res.status(200).json({ mensaje: 'Contenido retirado y propietario notificado' })
+//     } catch (err) { next(err) }
+//   }
+// }
 
 export class SancionEmpresaController {
   constructor(private readonly c: Modulo3Container) {}

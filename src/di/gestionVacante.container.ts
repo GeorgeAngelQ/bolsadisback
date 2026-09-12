@@ -25,7 +25,7 @@ export function buildModulo3Container(deps: {
   tipoDiscapacidadRepo: any 
   perfilCandidatoRepo: any
   ajusteRequeridoRepo: any 
-  reporteContenidoRepo: any
+  //reporteContenidoRepo: any
   notificacionRepo: any
   auditoriaRepo: any
 }) {
@@ -41,9 +41,9 @@ export function buildModulo3Container(deps: {
     verificarAjustes: new VerificarAjustesRazonablesVacanteUseCase(deps.vacanteRepo, deps.ajusteDisponibleRepo, deps.perfilCandidatoRepo, deps.ajusteRequeridoRepo, notificationService, auditLogger),
     registrarSancion: new RegistrarSancionEmpresaUseCase(deps.sancionRepo, auditLogger),
     levantarSancion: new LevantarSancionEmpresaUseCase(deps.sancionRepo, auditLogger),
-    registrarReporte: new RegistrarReporteContenidoUseCase(deps.reporteContenidoRepo, notificationService),
-    desestimarReporte: new DesestimarReporteContenidoUseCase(deps.reporteContenidoRepo, auditLogger),
-    retirarContenido: new RetirarContenidoReportadoUseCase(deps.reporteContenidoRepo, deps.vacanteRepo, notificationService, auditLogger),
+    //registrarReporte: new RegistrarReporteContenidoUseCase(deps.reporteContenidoRepo, notificationService),
+    //desestimarReporte: new DesestimarReporteContenidoUseCase(deps.reporteContenidoRepo, auditLogger),
+    //retirarContenido: new RetirarContenidoReportadoUseCase(deps.reporteContenidoRepo, deps.vacanteRepo, notificationService, auditLogger),
   }
 }
 

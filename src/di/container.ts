@@ -1,6 +1,6 @@
 import { buildModulo1Container } from './accesoRegistro.container'
 import { buildModulo2Container } from './gestionPerfil.container'
-
+import { buildModulo3Container } from './gestionVacante.container'
 //Mod 1
 import { 
   PostgresAdministradorRepository, 
@@ -162,7 +162,7 @@ export function buildContainer() {
     auditoriaRepo,
   })
 
-  const m3 = {
+  const m3 = buildModulo3Container({
     vacanteRepo,
     ajusteDisponibleRepo,
     sancionRepo,
@@ -170,10 +170,10 @@ export function buildContainer() {
     tipoDiscapacidadRepo,
     perfilCandidatoRepo,
     ajusteRequeridoRepo,
-    contenidoRepo, 
+    //reporteContenidoRepo, 
     notificacionRepo,
     auditoriaRepo,
-  }
+  })
   return { m1, m2, m3 }
 }
 
