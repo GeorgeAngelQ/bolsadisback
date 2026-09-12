@@ -76,6 +76,8 @@ import {
   PostgresReporteGestionIntermediadorRepository, 
   PostgresReporteInclusionLaboralRepository 
 } from '@infrastructure/persistence/postgres/repositories/reportes/PostgresReporteRepositories'
+import { buildModulo4Container } from './busquedaPostulacion.container'
+import { buildModulo5Container } from './intermediacion.container'
 
 export function buildContainer() {
 
@@ -174,7 +176,32 @@ export function buildContainer() {
     notificacionRepo,
     auditoriaRepo,
   })
-  return { m1, m2, m3 }
+
+  const m4 = buildModulo4Container({
+    vacanteRepo,
+    vacanteGuardadaRepo,
+    perfilCandidatoRepo,
+    tipoDiscapacidadRepo,
+    postulacionRepo,
+    ajusteRequeridoRepo,
+    sancionRepo,
+    alertaRepo,
+    recomendacionRepo,
+    notificacionRepo,
+    auditoriaRepo,
+  })
+
+  const m5 = buildModulo5Container({
+    asignacionRepo,
+    observacionRepo,
+    seguimientoRepo,
+    postulacionRepo,
+    entrevistaRepo,
+    derivacionRepo,
+    notificacionRepo,
+    auditoriaRepo,
+  })
+  return { m1, m2, m3, m5 }
 }
 
 export type AppContainer = ReturnType<typeof buildContainer>

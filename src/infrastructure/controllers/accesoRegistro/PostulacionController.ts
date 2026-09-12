@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express'
-import { AuthRequest } from '../middlewares/authMiddleware'
-import { Modulo4Container } from '../../../di/modulos3-8.container'
+import { AuthRequest } from '../../middlewares/authMiddleware'
+import { Modulo4Container } from '@di/busquedaPostulacion.container'
 
 export class BusquedaVacanteController {
   constructor(private readonly c: Modulo4Container) {}
@@ -26,7 +26,7 @@ export class BusquedaVacanteController {
   detalle = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.c.obtenerDetalleVacante.execute(
-        parseInt(req.params.id),
+        Number(req.params.id),
         req.usuario!.idUsuario,
       )
       res.status(200).json({ data: result })
@@ -40,8 +40,8 @@ export class PostulacionController {
   postular = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.c.postularVacante.execute({
-        idCandidato: parseInt(req.params.idCandidato),
-        idVacante: parseInt(req.params.idVacante),
+        idCandidato: Number(req.params.idCandidato),
+        idVacante: Number(req.params.idVacante),
         idUsuario: req.usuario!.idUsuario,
         cartaPresentacion: req.body.cartaPresentacion,
       })
@@ -52,7 +52,7 @@ export class PostulacionController {
   listar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.c.listarPostulaciones.execute(
-        parseInt(req.params.idCandidato),
+        Number(req.params.idCandidato),
       )
       res.status(200).json({ data: result })
     } catch (err) { next(err) }
@@ -61,7 +61,7 @@ export class PostulacionController {
   detalle = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.c.obtenerDetallePostulacion.execute(
-        parseInt(req.params.id),
+        Number(req.params.id),
         req.usuario!.idUsuario,
       )
       res.status(200).json({ data: result })
@@ -71,8 +71,8 @@ export class PostulacionController {
   retirar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.retirarPostulacion.execute(
-        parseInt(req.params.id),
-        parseInt(req.params.idCandidato),
+        Number(req.params.id),
+        Number(req.params.idCandidato),
         req.usuario!.idUsuario,
       )
       res.status(200).json({ mensaje: 'Postulación retirada correctamente' })
@@ -82,8 +82,8 @@ export class PostulacionController {
   calificar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.calificarPostulacion.execute({
-        idPostulacion: parseInt(req.params.id),
-        idCandidato: parseInt(req.params.idCandidato),
+        idPostulacion: Number(req.params.id),
+        idCandidato: Number(req.params.idCandidato),
         idUsuario: req.usuario!.idUsuario,
         calificacion: req.body.calificacion,
         comentario: req.body.comentario,
@@ -99,8 +99,8 @@ export class VacanteGuardadaController {
   guardar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.guardarFavorita.execute(
-        parseInt(req.params.idCandidato),
-        parseInt(req.params.idVacante),
+        Number(req.params.idCandidato),
+        Number(req.params.idVacante),
       )
       res.status(201).json({ mensaje: 'Vacante guardada en favoritos' })
     } catch (err) { next(err) }
@@ -109,8 +109,8 @@ export class VacanteGuardadaController {
   eliminar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.eliminarFavorita.execute(
-        parseInt(req.params.idCandidato),
-        parseInt(req.params.idVacante),
+        Number(req.params.idCandidato),
+        Number(req.params.idVacante),
       )
       res.status(200).json({ mensaje: 'Vacante eliminada de favoritos' })
     } catch (err) { next(err) }
@@ -123,7 +123,7 @@ export class AlertaEmpleoController {
   crear = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.c.crearAlerta.execute({
-        idCandidato: parseInt(req.params.idCandidato),
+        idCandidato: Number(req.params.idCandidato),
         idUsuario: req.usuario!.idUsuario,
         ...req.body,
       })
@@ -134,8 +134,8 @@ export class AlertaEmpleoController {
   editar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.editarAlerta.execute({
-        idAlerta: parseInt(req.params.id),
-        idCandidato: parseInt(req.params.idCandidato),
+        idAlerta: Number(req.params.id),
+        idCandidato: Number(req.params.idCandidato),
         ...req.body,
       })
       res.status(200).json({ mensaje: 'Alerta actualizada correctamente' })
@@ -145,8 +145,8 @@ export class AlertaEmpleoController {
   desactivar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.desactivarAlerta.execute(
-        parseInt(req.params.id),
-        parseInt(req.params.idCandidato),
+        Number(req.params.id),
+        Number(req.params.idCandidato),
       )
       res.status(200).json({ mensaje: 'Alerta desactivada' })
     } catch (err) { next(err) }
@@ -159,7 +159,7 @@ export class RecomendacionVacanteController {
   listar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await this.c.listarRecomendaciones.execute(
-        parseInt(req.params.idCandidato),
+        Number(req.params.idCandidato),
       )
       res.status(200).json({ data: result })
     } catch (err) { next(err) }
@@ -168,8 +168,8 @@ export class RecomendacionVacanteController {
   crearManual = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.crearRecomendacionManual.execute({
-        idCandidato: parseInt(req.params.idCandidato),
-        idVacante: parseInt(req.params.idVacante),
+        idCandidato: Number(req.params.idCandidato),
+        idVacante: Number(req.params.idVacante),
         idIntermediador: req.body.idIntermediador,
         idUsuarioIntermediador: req.usuario!.idUsuario,
       })
@@ -180,8 +180,8 @@ export class RecomendacionVacanteController {
   descartar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       await this.c.descartarRecomendacion.execute(
-        parseInt(req.params.id),
-        parseInt(req.params.idCandidato),
+        Number(req.params.id),
+        Number(req.params.idCandidato),
       )
       res.status(200).json({ mensaje: 'Recomendación descartada' })
     } catch (err) { next(err) }
