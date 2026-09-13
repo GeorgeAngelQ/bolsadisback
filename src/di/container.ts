@@ -1,6 +1,11 @@
 import { buildModulo1Container } from './accesoRegistro.container'
 import { buildModulo2Container } from './gestionPerfil.container'
 import { buildModulo3Container } from './gestionVacante.container'
+import { buildModulo4Container } from './busquedaPostulacion.container'
+import { buildModulo5Container } from './intermediacion.container'
+import { buildModulo6Container } from './comunicacion.contairner'
+import { buildModulo7Container } from './administracion.container'
+import { buildModulo8Container } from './reporte.container'
 //Mod 1
 import { 
   PostgresAdministradorRepository, 
@@ -76,8 +81,6 @@ import {
   PostgresReporteGestionIntermediadorRepository, 
   PostgresReporteInclusionLaboralRepository 
 } from '@infrastructure/persistence/postgres/repositories/reportes/PostgresReporteRepositories'
-import { buildModulo4Container } from './busquedaPostulacion.container'
-import { buildModulo5Container } from './intermediacion.container'
 
 export function buildContainer() {
 
@@ -201,7 +204,36 @@ export function buildContainer() {
     notificacionRepo,
     auditoriaRepo,
   })
-  return { m1, m2, m3, m5 }
+
+  const m6 = buildModulo6Container({
+    conversacionRepo,
+    postulacionRepo,
+    asignacionRepo,
+    mensajeRepo,
+    plantillaRepo,
+    auditoriaRepo,
+    notificacionRepo
+  })
+
+  const m7 = buildModulo7Container({
+    contenidoRepo,
+    tipoDiscapacidadRepo,
+    configAccesibilidadRepo,
+    //mantenimientoRepo,
+    auditoriaRepo,
+    notificacionRepo
+  })
+
+  const m8 = buildModulo8Container({
+    reporteCuotaRepo,
+    reporteGestionRepo,
+    reporteGlobalRepo,
+    dashboardRepo,
+    perfilEmpresaRepo,
+    auditoriaRepo,
+    notificacionRepo
+  })
+  return { m1, m2, m3, m5, m6, m7, m8 }
 }
 
 export type AppContainer = ReturnType<typeof buildContainer>

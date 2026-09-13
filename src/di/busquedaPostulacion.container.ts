@@ -1,7 +1,11 @@
 import { PostularVacanteUseCase } from "@application/use-cases/busquedaPostulacion/postularVacante/PostularVacante.usecase";
 import { BuscarVacantesUseCase, ObtenerDetalleVacanteUseCase } from '@application/use-cases/busquedaPostulacion/buscarVacantes/BuscarVacantes.usecase'
 import { CalificarExperienciaPostulacionUseCase } from '@application/use-cases/busquedaPostulacion/calificarPostulacion/CalificarExperienciaPostulacion.usecase'
-import { CrearAlertaEmpleoUseCase, DesactivarAlertaEmpleoUseCase, EditarAlertaEmpleoUseCase } from '@application/use-cases/busquedaPostulacion/gestionarAlertas/GestionarAlertas.usecase'
+import { 
+  CrearAlertaEmpleoUseCase, 
+  DesactivarAlertaEmpleoUseCase, 
+  EditarAlertaEmpleoUseCase 
+} from '@application/use-cases/busquedaPostulacion/gestionarAlertas/GestionarAlertas.usecase'
 import { GuardarVacanteFavoritaUseCase, EliminarVacanteFavoritaUseCase } from '@application/use-cases/busquedaPostulacion/gestionarFavoritos/GestionarFavoritos.usecase'
 import { 
   ListarPostulacionesCandidatoUseCase, 
