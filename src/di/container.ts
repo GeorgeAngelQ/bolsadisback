@@ -3,7 +3,7 @@ import { buildModulo2Container } from './gestionPerfil.container'
 import { buildModulo3Container } from './gestionVacante.container'
 import { buildModulo4Container } from './busquedaPostulacion.container'
 import { buildModulo5Container } from './intermediacion.container'
-import { buildModulo6Container } from './comunicacion.contairner'
+import { buildModulo6Container } from './comunicacion.container'
 import { buildModulo7Container } from './administracion.container'
 import { buildModulo8Container } from './reporte.container'
 //Mod 1
@@ -230,8 +230,7 @@ export function buildContainer() {
     reporteGlobalRepo,
     dashboardRepo,
     perfilEmpresaRepo,
-    auditoriaRepo,
-    notificacionRepo
+    auditoriaRepo
   })
   return { m1, m2, m3, m5, m6, m7, m8 }
 }
