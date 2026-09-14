@@ -47,7 +47,7 @@ export class SeguimientoPostulacionController {
          res.status(result.esNuevo ? 201 : 200).json({ data:result })
       } catch (err) { next(err) }
    }
-   actualizaNotas = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+   actualizarNotas = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
       try {
          await this.c.actualizarNotas.execute(
             Number(req.params.id),
