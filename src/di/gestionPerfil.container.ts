@@ -1,5 +1,5 @@
 import { DatabaseAuditLoggerService } from '@infrastructure/services/audit/DatabaseAuditLoggerService'
-import { LocalFileStorageService } from '@infrastructure/services/storage/LocalFileStorageService'
+import { createFileStorageService } from '@infrastructure/services/storage/FileStorageFactory'
 import { WcagAccessibilityChecker } from '@infrastructure/services/accessibility/WcagAccessibilityChecker'
 import { InAppNotificationService } from '@infrastructure/services/notifications/InAppNotificationService'
 
@@ -25,7 +25,7 @@ import {
   GestionarUsuariosReclutadoresUseCase,
 } from '@application/use-cases/gestionPerfil/gestionarPerfilEmpresa/GestionarPerfilEmpresa.usecase'
 
-const fileStorage = new LocalFileStorageService()
+const fileStorage = createFileStorageService()
 const accessibilityChecker = new WcagAccessibilityChecker()
 
 export function buildModulo2Container(deps: {
