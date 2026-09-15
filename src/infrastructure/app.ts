@@ -3,11 +3,10 @@ import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import { errorHandlerMiddleware } from './middlewares/errorHandlerMiddleware'
-import { createAuthRoutes } from './routes/auth.routes'
-import { AccesibilidadController, AuthController, GestionCuentasController, RolController } from './controllers/accesoRegistro/AuthController'
 import { buildContainer } from '../di/container'
 import { apiReference } from '@scalar/express-api-reference'
 import { openApiSpec } from '../docs/openapi'
+import { registerRoutes } from './routes/index.routes'
 export function createApp(): Application {
   const app = express()
 
@@ -53,21 +52,11 @@ app.use(
 
   
   const container = buildContainer()
-  const { m1 } = container
+  registerRoutes(app, container)
 
-  const authController = new AuthController(m1)
-  const accesibilidadController = new AccesibilidadController(m1)
-  const cuentasController = new GestionCuentasController(m1)
-  const rolController = new RolController(m1)
-
-  const authRoutes = createAuthRoutes(
-    authController,
-    accesibilidadController,
-    cuentasController,
-    rolController
-  )
-  app.use('/api/v1/auth', authRoutes)
-  // app.use('/api/v1/perfil', perfilRoutes)
+  app.use((_req, res) => {
+    res.status(404).json({ error: 'NotFound', mensaje: 'Recurso no encontrado' })
+  })
 
   app.use(errorHandlerMiddleware)
 
