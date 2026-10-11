@@ -17,12 +17,12 @@ export class PostgresVacanteRepository implements IVacanteRepository{
          requisitos: row.requisitos ?? undefined,
          categoriaLaboral: row.categoria_laboral ?? undefined,
          sectorEconomico: row.sector_economico ?? undefined,
-         modalidad: row.modalidad_trabajo as ModalidadTrabajo,
+         modalidad: row.modalidad as ModalidadTrabajo,
          remuneracion: row.remuneracion ? parseFloat(row.remuneracion) : undefined,
          ubicacion: row.ubicacion ?? undefined,
          fechaPublicacion: new Date (row.fecha_publicacion) ?? undefined,
          fechaCierre: new Date (row.fecha_cierre) ?? undefined,
-         estado: row.estado_vacante as EstadoVacante,
+         estado: row.estado as EstadoVacante,
          motivoRechazo: row.motivo_rechazo ?? undefined
       })
    }
@@ -61,7 +61,7 @@ export class PostgresVacanteRepository implements IVacanteRepository{
       }
       if (filtros.sector) {
          conditions.push(`v.sector_economico ILIKE $${idx++}`);
-         params.push(`%${filtros.sector}$%`);
+         params.push(`%${filtros.sector}%`);
       }
       if (filtros.palabrasClave){
          conditions.push(`(v.titulo LIKE $${idx} OR v.descripcion LIKE $${idx})`);
@@ -89,11 +89,11 @@ export class PostgresVacanteRepository implements IVacanteRepository{
          SELECT COUNT(*) AS total
          FROM vacante v
          ${where}`,
-         [params]
+         params
       )
       const total = parseInt(countRow?.total ?? '0');
 
-      const rows = await queryOne<any>(`
+      const rows = await query<any>(`
          SELECT 
             v.id_vacante,
             v.id_empresa,
@@ -112,8 +112,9 @@ export class PostgresVacanteRepository implements IVacanteRepository{
             v.motivo_rechazo
          FROM vacante v
          ${where}
-         ORDER BY v.fecha_publicacion
-         DESC LIMIT $${idx++}`, 
+         ORDER BY v.fecha_publicacion DESC 
+         LIMIT $${idx++}
+         OFFSET $${idx++}`,
          [...params, limit, offset]
       )
       return {vacantes: rows.map(this.toEntity), total}
@@ -145,7 +146,8 @@ export class PostgresVacanteRepository implements IVacanteRepository{
 
    async countActivas(idEmpresa: number): Promise<number> {
       const row = await queryOne<{ total: string }>(`
-         SELECT COUNT(*) AS total
+         SELECT 
+            COUNT(*) AS total
          FROM vacante
          WHERE id_empresa = $1 AND estado = 'aprobada'`,
          [idEmpresa]
@@ -158,7 +160,8 @@ export class PostgresVacanteRepository implements IVacanteRepository{
          SELECT EXISTS(
             SELECT 1 
             FROM postulacion 
-            WHERE id_candidato=$1 AND id_vacante=$2)`,
+            WHERE id_candidato=$1 AND id_vacante=$2
+         )`,
          [idCandidato, idVacante]
       )
       return row?.exists ?? false
@@ -169,9 +172,10 @@ export class PostgresVacanteRepository implements IVacanteRepository{
          SELECT EXISTS (
             SELECT 1 
             FROM vacante_discapacidad vd 
-            INNER JOIN perfil_discapacidad pd ON pd.id_tipo_discapacidad = v.id_tipo_discapacidad
+            INNER JOIN perfil_discapacidad pd ON pd.id_tipo_discapacidad = vd.id_tipo_discapacidad
             INNER JOIN perfil_candidato pc ON pc.id_perfil = pd.id_perfil
-            WHERE vd.id_vacante = $1 AND pc.id_candidato = $2) AS compatible`,
+            WHERE vd.id_vacante = $1 AND pc.id_candidato = $2
+         ) AS compatible`,
          [idVacante, idCandidato]
       )
       return row?.compatible ?? false
@@ -212,7 +216,9 @@ export class PostgresVacanteRepository implements IVacanteRepository{
             estado,
             motivo_rechazo
          FROM vacante
-         WHERE estado = 'aprobada' AND fecha_publicacion <= NOW() - INTERVAL '${dias} days'`)
+         WHERE estado = 'aprobada' AND fecha_publicacion <= NOW() - ($1 * INTERVAL '1 day')`, 
+         [dias]
+      )
       return rows.map(this.toEntity)
    }
 
@@ -223,7 +229,7 @@ export class PostgresVacanteRepository implements IVacanteRepository{
          modalidad, remuneracion, ubicacion, fecha_publicacion, fecha_cierre, estado, motivo_rechazo)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
          [vacante.getIdEmpresa(), vacante.getIdAdministrador(), vacante.getTitulo(), vacante.getDescripcion(),
-         vacante.getDescripcion(), vacante.getRequisitos(), vacante.getCategoriaLaboral(), vacante.getSectorEconomico(),
+         vacante.getRequisitos(), vacante.getCategoriaLaboral(), vacante.getSectorEconomico(),
          vacante.getModalidad(), vacante.getRemuneracion(), vacante.getUbicacion(), vacante.getFechaPublicacion(),
          vacante.getFechaCierre(), vacante.getEstado(), vacante.getMotivoRechazo()]
       )
@@ -272,8 +278,8 @@ export class PostgresVacanteRepository implements IVacanteRepository{
 export class PostgresAjusteRazonableDisponibleRepository implements IAjusteRazonableDisponibleRepository{
    private toEntity( row: any) : AjusteRazonableDisponible {
       return new AjusteRazonableDisponible ({
-         id: row.id_ajuste_requerido,
-         idVacante: row.id_perfil,
+         id: row.id_ajuste_disponible,
+         idVacante: row.id_vacante,
          descripcion: row.descripcion,
          tipo: row.tipo as TipoAjusteRazonable,
          verificadoPorIntermediador: row.verificado_por_intermediador
@@ -325,7 +331,7 @@ export class PostgresAjusteRazonableDisponibleRepository implements IAjusteRazon
             descripcion = $1,
             tipo = $2,
             verificado_por_intermediador = $3
-         WHERE id_ajuste_razonable = $4`, 
+         WHERE id_ajuste_disponible = $4`, 
          [ajuste.getDescripcion(), ajuste.getTipo(), ajuste.isVerificado(), ajuste.id]
       )
    }
@@ -382,7 +388,8 @@ export class PostgresSancionEmpresaRepository implements ISancionEmpresaReposito
             estado,
             normativa_infringida
          FROM sancion_empresa
-         WHERE id_empresa = $1 AND estado = 'activa' LIMIT 1`, 
+         WHERE id_empresa = $1 AND estado = 'activa' 
+         LIMIT 1`, 
          [idEmpresa]
       )
       return row ? this.toEntity(row) : null
@@ -415,7 +422,7 @@ export class PostgresSancionEmpresaRepository implements ISancionEmpresaReposito
       await execute(`
          UPDATE sancion_empresa SET
             estado = $1,
-            fecha_fin = $2,
+            fecha_fin = $2
          WHERE id_sancion = $3`, 
          [sancion.getEstado(), sancion.getFechaFin(), sancion.id]
       )
