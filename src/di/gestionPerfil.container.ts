@@ -1,7 +1,5 @@
-import { DatabaseAuditLoggerService } from '@infrastructure/services/audit/DatabaseAuditLoggerService'
-import { createFileStorageService } from '@infrastructure/services/storage/FileStorageFactory'
-import { WcagAccessibilityChecker } from '@infrastructure/services/accessibility/WcagAccessibilityChecker'
-import { InAppNotificationService } from '@infrastructure/services/notifications/InAppNotificationService'
+import { Repositories } from './repositories'
+import { SharedServices } from './shared.container'
 
 import { CrearPerfilCandidatoUseCase } from '@application/use-cases/gestionPerfil/crearPerfilCandidato/CrearPerfilCandidato.usecase'
 import {
@@ -25,51 +23,53 @@ import {
   GestionarUsuariosReclutadoresUseCase,
 } from '@application/use-cases/gestionPerfil/gestionarPerfilEmpresa/GestionarPerfilEmpresa.usecase'
 
-const fileStorage = createFileStorageService()
-const accessibilityChecker = new WcagAccessibilityChecker()
+export type Modulo2Repos = Pick<
+  Repositories,
+  | 'perfilCandidatoRepo'
+  | 'perfilEmpresaRepo'
+  | 'cvRepo'
+  | 'habilidadRepo'
+  | 'experienciaRepo'
+  | 'formacionRepo'
+  | 'tipoDiscapacidadRepo'
+  | 'ajusteRequeridoRepo'
+  | 'certificadoRepo'
+>
 
-export function buildModulo2Container(deps: {
-  perfilCandidatoRepo: any
-  perfilEmpresaRepo: any
-  cvRepo: any
-  habilidadRepo: any
-  experienciaRepo: any
-  formacionRepo: any
-  tipoDiscapacidadRepo: any
-  ajusteRequeridoRepo: any
-  certificadoRepo: any
-  notificacionRepo: any
-  auditoriaRepo: any
-}) {
-  const auditLogger = new DatabaseAuditLoggerService(deps.auditoriaRepo)
-  const notificationService = new InAppNotificationService(deps.notificacionRepo)
+export function buildModulo2Container(repos: Modulo2Repos, shared: SharedServices) {
+  
+  const { 
+    auditLogger, 
+    fileStorage, 
+    accessibilityChecker
+  } = shared
 
   return {
     crearPerfilCandidato: new CrearPerfilCandidatoUseCase(
-      deps.perfilCandidatoRepo, 
-      deps.tipoDiscapacidadRepo,
-      deps.ajusteRequeridoRepo, 
+      repos.perfilCandidatoRepo, 
+      repos.tipoDiscapacidadRepo,
+      repos.ajusteRequeridoRepo, 
       auditLogger,
     ),
-    editarPerfilCandidato: new EditarPerfilCandidatoUseCase(deps.perfilCandidatoRepo, auditLogger),
-    actualizarHabilidades: new ActualizarHabilidadesUseCase(deps.perfilCandidatoRepo, deps.habilidadRepo),
-    actualizarExperiencias: new ActualizarExperienciasLaboralesUseCase(deps.perfilCandidatoRepo, deps.experienciaRepo),
-    actualizarFormaciones: new ActualizarFormacionAcademicaUseCase(deps.perfilCandidatoRepo, deps.formacionRepo),
+    editarPerfilCandidato: new EditarPerfilCandidatoUseCase(repos.perfilCandidatoRepo, auditLogger),
+    actualizarHabilidades: new ActualizarHabilidadesUseCase(repos.perfilCandidatoRepo, repos.habilidadRepo),
+    actualizarExperiencias: new ActualizarExperienciasLaboralesUseCase(repos.perfilCandidatoRepo, repos.experienciaRepo),
+    actualizarFormaciones: new ActualizarFormacionAcademicaUseCase(repos.perfilCandidatoRepo, repos.formacionRepo),
 
     subirCV: new SubirCVUseCase(
-      deps.perfilCandidatoRepo, deps.cvRepo, fileStorage, accessibilityChecker, auditLogger,
+      repos.perfilCandidatoRepo, repos.cvRepo, fileStorage, accessibilityChecker, auditLogger,
     ),
-    generarCV: new GenerarCVAutomaticoUseCase(deps.perfilCandidatoRepo, deps.cvRepo, fileStorage, auditLogger),
-    descargarCV: new DescargarCVUseCase(deps.perfilCandidatoRepo, deps.cvRepo, fileStorage),
+    generarCV: new GenerarCVAutomaticoUseCase(repos.perfilCandidatoRepo, repos.cvRepo, fileStorage, auditLogger),
+    descargarCV: new DescargarCVUseCase(repos.perfilCandidatoRepo, repos.cvRepo, fileStorage),
 
     registrarCertificado: new RegistrarCertificadoDiscapacidadUseCase(
-      deps.perfilCandidatoRepo, deps.certificadoRepo, fileStorage, auditLogger,
+      repos.perfilCandidatoRepo, repos.certificadoRepo, fileStorage, auditLogger,
     ),
-    verificarCertificado: new VerificarCertificadoDiscapacidadUseCase(deps.certificadoRepo, auditLogger),
+    verificarCertificado: new VerificarCertificadoDiscapacidadUseCase(repos.certificadoRepo, auditLogger),
     
-    crearPerfilEmpresa: new CrearPerfilEmpresaUseCase(deps.perfilEmpresaRepo, auditLogger),
-    editarPerfilEmpresa: new EditarPerfilEmpresaUseCase(deps.perfilEmpresaRepo, auditLogger),
-    gestionarReclutadores: new GestionarUsuariosReclutadoresUseCase(deps.perfilEmpresaRepo, auditLogger),
+    crearPerfilEmpresa: new CrearPerfilEmpresaUseCase(repos.perfilEmpresaRepo, auditLogger),
+    editarPerfilEmpresa: new EditarPerfilEmpresaUseCase(repos.perfilEmpresaRepo, auditLogger),
+    gestionarReclutadores: new GestionarUsuariosReclutadoresUseCase(repos.perfilEmpresaRepo, auditLogger),
   }
 }
 

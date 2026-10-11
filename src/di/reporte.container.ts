@@ -1,3 +1,6 @@
+import { Repositories } from './repositories'
+import { SharedServices } from './shared.container'
+
 import { 
    CompararPeriodosReporteUseCase, 
    ExportarConsolidadoEmpresasUseCase, 
@@ -8,33 +11,33 @@ import {
    GenerarReporteInclusionLaboralUseCase, 
    ObtenerDashboardIndicadoresUseCase 
 } from "@application/use-cases/reportes/ReporteUseCases.usecase"
-import { DatabaseAuditLoggerService } from "@infrastructure/services/audit/DatabaseAuditLoggerService"
-import { ExcelJsGeneratorService } from "@infrastructure/services/documents/ExcelJsGeneratorService"
-import { PdfKitGeneratorService } from "@infrastructure/services/documents/PdfKitGeneratorService"
-import { LocalFileStorageService } from "@infrastructure/services/storage/LocalFileStorageService"
 
-export function buildModulo8Container(deps: {
-   reporteCuotaRepo: any
-   reporteGestionRepo: any
-   reporteGlobalRepo: any
-   dashboardRepo: any
-   perfilEmpresaRepo: any
-   auditoriaRepo: any
-}) {
-   const auditLogger = new DatabaseAuditLoggerService(deps.auditoriaRepo)
-   const pdfGeneratorService = new PdfKitGeneratorService()
-   const fileStorageService = new LocalFileStorageService()
-   const excelGeneratorService = new ExcelJsGeneratorService()
+export type Modulo8Repos = Pick<
+  Repositories,
+  | 'reporteCuotaRepo'
+  | 'reporteGestionRepo'
+  | 'reporteGlobalRepo'
+  | 'dashboardRepo'
+  | 'perfilEmpresaRepo'
+>
+
+export function buildModulo8Container(repos: Modulo8Repos, shared: SharedServices) {
+  const { 
+   auditLogger, 
+   fileStorage: fileStorageService,
+   pdfService,
+   excelService
+   } = shared
 
   return {
-      generarReporteCuota: new GenerarReporteCuotaInclusionUseCase(deps.reporteCuotaRepo, deps.perfilEmpresaRepo, auditLogger),
-      generarReporteGestion: new GenerarReporteGestionIntermediadorUseCase(deps.reporteGestionRepo, auditLogger),
-      generarReporteGlobal: new GenerarReporteInclusionLaboralUseCase(deps.reporteGlobalRepo, auditLogger),
-      compararPeriodos: new CompararPeriodosReporteUseCase(deps.reporteGlobalRepo),
-      obtenerDashboard: new ObtenerDashboardIndicadoresUseCase(deps.dashboardRepo),
-      exportarPDF: new ExportarReportePDFUseCase(deps.reporteCuotaRepo, deps.reporteGestionRepo, deps.reporteGlobalRepo, pdfGeneratorService, fileStorageService, auditLogger),
-      exportarExcel: new ExportarReporteExcelUseCase(deps.reporteCuotaRepo, deps.reporteGestionRepo, deps.reporteGlobalRepo, excelGeneratorService, fileStorageService, auditLogger),
-      exportarConsolidado: new ExportarConsolidadoEmpresasUseCase(deps.reporteCuotaRepo, excelGeneratorService, fileStorageService, auditLogger)
+      generarReporteCuota: new GenerarReporteCuotaInclusionUseCase(repos.reporteCuotaRepo, repos.perfilEmpresaRepo, auditLogger),
+      generarReporteGestion: new GenerarReporteGestionIntermediadorUseCase(repos.reporteGestionRepo, auditLogger),
+      generarReporteGlobal: new GenerarReporteInclusionLaboralUseCase(repos.reporteGlobalRepo, auditLogger),
+      compararPeriodos: new CompararPeriodosReporteUseCase(repos.reporteGlobalRepo),
+      obtenerDashboard: new ObtenerDashboardIndicadoresUseCase(repos.dashboardRepo),
+      exportarPDF: new ExportarReportePDFUseCase(repos.reporteCuotaRepo, repos.reporteGestionRepo, repos.reporteGlobalRepo, pdfService, fileStorageService, auditLogger),
+      exportarExcel: new ExportarReporteExcelUseCase(repos.reporteCuotaRepo, repos.reporteGestionRepo, repos.reporteGlobalRepo, excelService, fileStorageService, auditLogger),
+      exportarConsolidado: new ExportarConsolidadoEmpresasUseCase(repos.reporteCuotaRepo, excelService, fileStorageService, auditLogger)
   }
 }
 

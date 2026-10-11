@@ -65,9 +65,10 @@ import {
 const API = '/api/v1'
 
 export function registerRoutes(app: Application, container: AppContainer): void {
-  const { m1, m2, m3, m4, m5, m6, m7, m8 } = container
+  const { shared, m1, m2, m3, m4, m5, m6, m7, m8 } = container
 
   app.use(`${API}/auth`, createAuthRoutes(
+    shared.authMiddleware,
     new AuthController(m1), 
     new AccesibilidadController(m1),
     new GestionCuentasController(m1), 
@@ -75,6 +76,7 @@ export function registerRoutes(app: Application, container: AppContainer): void 
   ))
 
   app.use(API, createPerfilRoutes(
+    shared.authMiddleware,
     new PerfilCandidatoController(m2), 
     new CurriculumVitaeController(m2),
     new CertificadoController(m2), 
@@ -82,6 +84,7 @@ export function registerRoutes(app: Application, container: AppContainer): void 
   ))
 
   app.use(API, createVacanteRoutes(
+    shared.authMiddleware,
     new VacanteController(m3), 
     new AprobacionVacanteController(m3),
     // new ReporteContenidoController(m3), 
@@ -89,6 +92,7 @@ export function registerRoutes(app: Application, container: AppContainer): void 
   ))
 
   app.use(API, createPostulacionRoutes(
+    shared.authMiddleware,
     new BusquedaVacanteController(m4), 
     new PostulacionController(m4),
     new VacanteGuardadaController(m4), 
@@ -97,6 +101,7 @@ export function registerRoutes(app: Application, container: AppContainer): void 
   ))
 
   app.use(API, createIntermediacionRoutes(
+    shared.authMiddleware,
     new IntermediacionLaboralController(m5), 
     new ObservacionCandidatoController(m5),
     new SeguimientoPostulacionController(m5), 
@@ -105,12 +110,14 @@ export function registerRoutes(app: Application, container: AppContainer): void 
   ))
 
   app.use(API, createComunicacionRoutes(
+    shared.authMiddleware,
     new ConversacionController(m6), 
     new MensajeController(m6),
     new PlantillaNotificacionController(m6),
   ))
 
   app.use(`${API}/administracion`, createAdministracionRoutes(
+    shared.authMiddleware,
     new ContenidoInformativoController(m7), 
     new CategoriaController(m7),
     new ConfiguracionAccesibilidadController(m7), 
@@ -119,6 +126,7 @@ export function registerRoutes(app: Application, container: AppContainer): void 
   ))
 
   app.use(API, createReportesRoutes(
+    shared.authMiddleware,
     new ReporteCuotaController(m8), 
     new ReporteGestionController(m8),
     new ReporteGlobalController(m8), 

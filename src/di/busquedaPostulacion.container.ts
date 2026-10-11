@@ -1,3 +1,6 @@
+import { Repositories } from './repositories'
+import { SharedServices } from './shared.container'
+
 import { PostularVacanteUseCase } from "@application/use-cases/busquedaPostulacion/postularVacante/PostularVacante.usecase";
 import { BuscarVacantesUseCase, ObtenerDetalleVacanteUseCase } from '@application/use-cases/busquedaPostulacion/buscarVacantes/BuscarVacantes.usecase'
 import { CalificarExperienciaPostulacionUseCase } from '@application/use-cases/busquedaPostulacion/calificarPostulacion/CalificarExperienciaPostulacion.usecase'
@@ -19,41 +22,44 @@ import {
   DescartarRecomendacionUseCase 
 } from '@application/use-cases/busquedaPostulacion/gestionarRecomendaciones/GestionarRecomendaciones.usecase'
 
-import { DatabaseAuditLoggerService } from "@infrastructure/services/audit/DatabaseAuditLoggerService";
-import { InAppNotificationService } from "@infrastructure/services/notifications/InAppNotificationService";
 
-export function buildModulo4Container(deps: {
-  vacanteRepo: any
-  vacanteGuardadaRepo: any
-  perfilCandidatoRepo: any
-  tipoDiscapacidadRepo: any
-  postulacionRepo: any
-  ajusteRequeridoRepo: any
-  sancionRepo: any
-  alertaRepo: any
-  recomendacionRepo: any
-  notificacionRepo: any
-  auditoriaRepo: any
-}) {
-  const auditLogger = new DatabaseAuditLoggerService(deps.auditoriaRepo)
-  const notificationService = new InAppNotificationService(deps.notificacionRepo)
+export type Modulo4Repos = Pick<
+  Repositories,
+  | 'vacanteRepo'
+  | 'vacanteGuardadaRepo'
+  | 'perfilCandidatoRepo'
+  | 'tipoDiscapacidadRepo'
+  | 'postulacionRepo'
+  | 'ajusteRequeridoRepo'
+  | 'sancionRepo'
+  | 'alertaRepo'
+  | 'recomendacionRepo'
+>
+
+export function buildModulo4Container(repos: Modulo4Repos, shared: SharedServices) {
+
+  const { 
+    auditLogger, 
+    notificationService 
+  } = shared
+
   return {
-    buscarVacantes: new BuscarVacantesUseCase(deps.vacanteRepo, deps.vacanteGuardadaRepo, deps.perfilCandidatoRepo, deps.tipoDiscapacidadRepo),
-    obtenerDetalleVacante: new ObtenerDetalleVacanteUseCase(deps.vacanteRepo, deps.vacanteGuardadaRepo, deps.postulacionRepo, deps.tipoDiscapacidadRepo),
-    postularVacante: new PostularVacanteUseCase(deps.postulacionRepo, deps.vacanteRepo, deps.perfilCandidatoRepo, notificationService, auditLogger),
-    listarPostulaciones: new ListarPostulacionesCandidatoUseCase(deps.postulacionRepo),
-    obtenerDetallePostulacion: new ObtenerDetallePostulacionUseCase(deps.postulacionRepo),
-    retirarPostulacion: new RetirarPostulacionUseCase(deps.postulacionRepo, notificationService, auditLogger),
-    calificarPostulacion: new CalificarExperienciaPostulacionUseCase(deps.postulacionRepo, auditLogger),
-    guardarFavorita: new GuardarVacanteFavoritaUseCase(deps.vacanteGuardadaRepo, deps.vacanteRepo),
-    eliminarFavorita: new EliminarVacanteFavoritaUseCase(deps.vacanteGuardadaRepo),
-    crearAlerta: new CrearAlertaEmpleoUseCase(deps.alertaRepo, auditLogger),
-    editarAlerta: new EditarAlertaEmpleoUseCase(deps.alertaRepo),
-    desactivarAlerta: new DesactivarAlertaEmpleoUseCase(deps.alertaRepo),
-    generarRecomendacionesAuto: new GenerarRecomendacionesAutomaticasUseCase(deps.recomendacionRepo, deps.vacanteRepo, deps.perfilCandidatoRepo, deps.tipoDiscapacidadRepo, notificationService),
-    listarRecomendaciones: new ListarRecomendacionesCandidatoUseCase(deps.recomendacionRepo),
-    crearRecomendacionManual: new CrearRecomendacionManualUseCase(deps.recomendacionRepo, deps.vacanteRepo, notificationService),
-    descartarRecomendacion: new DescartarRecomendacionUseCase(deps.recomendacionRepo),
+    buscarVacantes: new BuscarVacantesUseCase(repos.vacanteRepo, repos.vacanteGuardadaRepo, repos.perfilCandidatoRepo, repos.tipoDiscapacidadRepo),
+    obtenerDetalleVacante: new ObtenerDetalleVacanteUseCase(repos.vacanteRepo, repos.vacanteGuardadaRepo, repos.postulacionRepo, repos.tipoDiscapacidadRepo),
+    postularVacante: new PostularVacanteUseCase(repos.postulacionRepo, repos.vacanteRepo, repos.perfilCandidatoRepo, notificationService, auditLogger),
+    listarPostulaciones: new ListarPostulacionesCandidatoUseCase(repos.postulacionRepo),
+    obtenerDetallePostulacion: new ObtenerDetallePostulacionUseCase(repos.postulacionRepo),
+    retirarPostulacion: new RetirarPostulacionUseCase(repos.postulacionRepo, notificationService, auditLogger),
+    calificarPostulacion: new CalificarExperienciaPostulacionUseCase(repos.postulacionRepo, auditLogger),
+    guardarFavorita: new GuardarVacanteFavoritaUseCase(repos.vacanteGuardadaRepo, repos.vacanteRepo),
+    eliminarFavorita: new EliminarVacanteFavoritaUseCase(repos.vacanteGuardadaRepo),
+    crearAlerta: new CrearAlertaEmpleoUseCase(repos.alertaRepo, auditLogger),
+    editarAlerta: new EditarAlertaEmpleoUseCase(repos.alertaRepo),
+    desactivarAlerta: new DesactivarAlertaEmpleoUseCase(repos.alertaRepo),
+    generarRecomendacionesAuto: new GenerarRecomendacionesAutomaticasUseCase(repos.recomendacionRepo, repos.vacanteRepo, repos.perfilCandidatoRepo, repos.tipoDiscapacidadRepo, notificationService),
+    listarRecomendaciones: new ListarRecomendacionesCandidatoUseCase(repos.recomendacionRepo),
+    crearRecomendacionManual: new CrearRecomendacionManualUseCase(repos.recomendacionRepo, repos.vacanteRepo, notificationService),
+    descartarRecomendacion: new DescartarRecomendacionUseCase(repos.recomendacionRepo),
   }
 }
 

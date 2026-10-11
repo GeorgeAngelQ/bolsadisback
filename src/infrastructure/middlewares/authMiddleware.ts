@@ -29,3 +29,5 @@ export function createAuthMiddleware(tokenGenerator: ITokenGenerator) {
     }
   }
 }
+
+export type AuthMiddleware = ReturnType<typeof createAuthMiddleware>

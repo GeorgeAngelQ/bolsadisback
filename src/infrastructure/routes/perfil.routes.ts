@@ -1,9 +1,8 @@
 import { Router } from 'express'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import { requireCandidato, requireEmpresa, requireAdministrador } from '../middlewares/roleMiddleware'
 import { upload } from '../middlewares/uploadMiddleware'
 
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 import {
   CertificadoController,
   CurriculumVitaeController,
@@ -12,13 +11,13 @@ import {
 } from '@infrastructure/controllers/gestionPerfil/PerfilController'
 
 export function createPerfilRoutes(
+  auth: AuthMiddleware,
   candidato: PerfilCandidatoController,
   curriculum: CurriculumVitaeController,
   certificado: CertificadoController,
   empresa: PerfilEmpresaController
 ): Router {
   const router = Router()
-  const auth = createAuthMiddleware(new JwtTokenGenerator())
 
   router.post('/candidatos/:idCandidato/perfil', auth, requireCandidato(), candidato.crear)
   router.put('/candidatos/:idCandidato/perfil', auth, requireCandidato(), candidato.editar)

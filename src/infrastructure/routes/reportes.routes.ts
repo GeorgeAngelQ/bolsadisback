@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import { requireAdministrador, requireEmpresa, requireIntermediador } from '../middlewares/roleMiddleware'
 import {
   ReporteCuotaController,
@@ -8,9 +8,9 @@ import {
   DashboardController,
   ExportacionController,
 } from '../controllers/reportes/ReporteController'
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 
 export function createReportesRoutes(
+  auth: AuthMiddleware,
   cuota: ReporteCuotaController,
   gestion: ReporteGestionController,
   global: ReporteGlobalController,
@@ -18,7 +18,6 @@ export function createReportesRoutes(
   exportacion: ExportacionController,
 ): Router {
   const router = Router()
-  const auth = createAuthMiddleware(new JwtTokenGenerator())
 
   router.post('/empresas/:idEmpresa/reportes/cuota', auth, requireEmpresa(), cuota.generar)
   router.post('/intermediadores/:idIntermediador/reportes/gestion', auth, requireIntermediador(), gestion.generar)

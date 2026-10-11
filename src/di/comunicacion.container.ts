@@ -1,3 +1,6 @@
+import { Repositories } from './repositories'
+import { SharedServices } from './shared.container'
+
 import { 
    CrearPlantillaNotificacionUseCase, 
    DesactivarPlantillaNotificacionUseCase, 
@@ -8,31 +11,32 @@ import {
    MarcarMensajesLeidosUseCase, 
    ObtenerHistorialConversacionUseCase 
 } from '@application/use-cases/comunicacion/ComunicacionUseCases.usecase'
-import { DatabaseAuditLoggerService } from '@infrastructure/services/audit/DatabaseAuditLoggerService'
-import { InAppNotificationService } from '@infrastructure/services/notifications/InAppNotificationService'
 
 
-export function buildModulo6Container(deps: {
-   conversacionRepo: any
-   postulacionRepo: any
-   asignacionRepo: any
-   mensajeRepo: any
-   plantillaRepo: any
-   auditoriaRepo: any
-   notificacionRepo: any
-}) {
-  const auditLogger = new DatabaseAuditLoggerService(deps.auditoriaRepo)
-  const notificationService = new InAppNotificationService(deps.notificacionRepo)
+export type Modulo6Repos = Pick<
+  Repositories,
+  | 'conversacionRepo'
+  | 'postulacionRepo'
+  | 'asignacionRepo'
+  | 'mensajeRepo'
+  | 'plantillaRepo'
+>
+
+export function buildModulo6Container(repos: Modulo6Repos, shared: SharedServices) {
+  const { 
+    auditLogger, 
+    notificationService 
+  } = shared
 
   return {
-    iniciarConversacion: new IniciarConversacionUseCase(deps.conversacionRepo, deps.postulacionRepo, deps.asignacionRepo),
-    obtenerHistorial: new ObtenerHistorialConversacionUseCase(deps.conversacionRepo, deps.mensajeRepo),
-    enviarMensaje: new EnviarMensajeUseCase(deps.conversacionRepo, deps.mensajeRepo, deps.notificacionRepo, auditLogger),
-    enviarMasivo: new EnviarMensajeMasivoUseCase(deps.conversacionRepo, deps.conversacionRepo, notificationService),
-    marcarLeidos: new MarcarMensajesLeidosUseCase(deps.conversacionRepo, deps.mensajeRepo),
-    crearPlantilla: new CrearPlantillaNotificacionUseCase(deps.plantillaRepo, auditLogger),
-    editarPlantilla: new EditarPlantillaNotificacionUseCase(deps.plantillaRepo, auditLogger),
-    desactivarPlantilla: new DesactivarPlantillaNotificacionUseCase(deps.plantillaRepo, auditLogger),
+    iniciarConversacion: new IniciarConversacionUseCase(repos.conversacionRepo, repos.postulacionRepo, repos.asignacionRepo),
+    obtenerHistorial: new ObtenerHistorialConversacionUseCase(repos.conversacionRepo, repos.mensajeRepo),
+    enviarMensaje: new EnviarMensajeUseCase(repos.conversacionRepo, repos.mensajeRepo, notificationService, auditLogger),
+    enviarMasivo: new EnviarMensajeMasivoUseCase(repos.conversacionRepo, repos.mensajeRepo, notificationService),
+    marcarLeidos: new MarcarMensajesLeidosUseCase(repos.conversacionRepo, repos.mensajeRepo),
+    crearPlantilla: new CrearPlantillaNotificacionUseCase(repos.plantillaRepo, auditLogger),
+    editarPlantilla: new EditarPlantillaNotificacionUseCase(repos.plantillaRepo, auditLogger),
+    desactivarPlantilla: new DesactivarPlantillaNotificacionUseCase(repos.plantillaRepo, auditLogger),
   }
 }
 

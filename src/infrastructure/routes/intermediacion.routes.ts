@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { validar } from '../middlewares/validationMiddleware'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import { requireIntermediador, requireEmpresa } from '../middlewares/roleMiddleware'
 import {
   registrarObservacionSchema,
@@ -15,9 +15,9 @@ import {
   CoordinacionEntrevistaController,
   DerivacionServicioController,
 } from '../controllers/intermediacion/IntermediacionController'
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 
 export function createIntermediacionRoutes(
+  auth: AuthMiddleware,
   asignacion: IntermediacionLaboralController,
   observacion: ObservacionCandidatoController,
   seguimiento: SeguimientoPostulacionController,
@@ -25,7 +25,6 @@ export function createIntermediacionRoutes(
   derivacion: DerivacionServicioController,
 ): Router {
   const router = Router()
-  const auth = createAuthMiddleware(new JwtTokenGenerator())
 
   router.post('/intermediadores/:idIntermediador/candidatos/:idCandidato/asignar',
     auth, requireIntermediador(), asignacion.asignar)

@@ -3,18 +3,20 @@ import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import { errorHandlerMiddleware } from './middlewares/errorHandlerMiddleware'
-import { buildContainer } from '../di/container'
+import { AppContainer } from '@di/container'
 import { apiReference } from '@scalar/express-api-reference'
 import { openApiSpec } from '../docs/openapi'
 import { registerRoutes } from './routes/index.routes'
-export function createApp(): Application {
+export function createApp(container: AppContainer): Application {
+
   const app = express()
 
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-  }),
-)
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+    }),
+  )
+
   app.use(cors({
     origin: process.env.CORS_ORIGIN,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -50,8 +52,6 @@ app.use(
     res.json({ status: 'ok', timestamp: new Date().toString() })
   })
 
-  
-  const container = buildContainer()
   registerRoutes(app, container)
 
   app.use((_req, res) => {

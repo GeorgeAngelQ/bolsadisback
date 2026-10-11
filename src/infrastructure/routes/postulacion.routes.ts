@@ -1,8 +1,7 @@
 import { Router } from 'express'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import { requireCandidato, requireIntermediador } from '../middlewares/roleMiddleware'
 
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 import {
   BusquedaVacanteController,
   PostulacionController,
@@ -12,6 +11,7 @@ import {
 } from '@infrastructure/controllers/busquedaPostulacion/PostulacionController'
 
 export function createPostulacionRoutes(
+  auth: AuthMiddleware,
   busqueda: BusquedaVacanteController,
   postulacion: PostulacionController,
   guardada: VacanteGuardadaController,
@@ -19,7 +19,6 @@ export function createPostulacionRoutes(
   recomendacion: RecomendacionVacanteController
 ): Router {
   const router = Router()
-  const auth = createAuthMiddleware(new JwtTokenGenerator())
 
   router.get('/vacantes/buscar', auth, requireCandidato(), busqueda.buscar)
   router.get('/vacantes/:id', auth, requireCandidato(), busqueda.detalle)

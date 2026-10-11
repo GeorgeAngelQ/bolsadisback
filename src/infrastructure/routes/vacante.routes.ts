@@ -1,12 +1,10 @@
 import { Router } from 'express'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import {
   requireEmpresa,
   requireAdministrador,
   requireIntermediador
 } from '../middlewares/roleMiddleware'
-
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 import {
   VacanteController,
   AprobacionVacanteController,
@@ -15,13 +13,13 @@ import {
 } from '@infrastructure/controllers/gestionVacante/VacanteController'
 
 export function createVacanteRoutes(
+  auth: AuthMiddleware,
   vacante: VacanteController,
   aprobacion: AprobacionVacanteController,
   // reporte: ReporteContenidoController,
   sancion: SancionEmpresaController
 ): Router {
   const router = Router()
-  const auth = createAuthMiddleware(new JwtTokenGenerator())
 
   router.post('/empresas/:idEmpresa/vacantes', auth, requireEmpresa(), vacante.publicar)
   router.put('/empresas/:idEmpresa/vacantes/:id', auth, requireEmpresa(), vacante.editar)

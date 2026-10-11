@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { validar } from '../middlewares/validationMiddleware'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import { requireAdministrador } from '../middlewares/roleMiddleware'
 import {
   ContenidoInformativoController,
@@ -9,9 +9,9 @@ import {
   AuditoriaController,
   // MantenimientoController,
 } from '../controllers/administracion/AdministracionController'
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 
 export function createAdministracionRoutes(
+  auth: AuthMiddleware,
   contenido: ContenidoInformativoController,
   categoria: CategoriaController,
   configAcc: ConfiguracionAccesibilidadController,
@@ -19,7 +19,6 @@ export function createAdministracionRoutes(
   //mantenimiento: MantenimientoController,
 ): Router {
   const router = Router()
-  const auth = createAuthMiddleware(new JwtTokenGenerator())
 
   router.post('/contenido', auth, requireAdministrador(), contenido.publicar)
   router.put('/contenido/:id', auth, requireAdministrador(), contenido.editar)

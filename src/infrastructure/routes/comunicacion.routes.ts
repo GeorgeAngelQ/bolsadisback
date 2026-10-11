@@ -1,20 +1,19 @@
 import { Router } from 'express'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import { requireAdministrador, requireEmpresa } from '../middlewares/roleMiddleware'
 import {
   ConversacionController,
   MensajeController,
   PlantillaNotificacionController,
 } from '../controllers/comunicacion/ComunicacionController'
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 
 export function createComunicacionRoutes(
+  auth: AuthMiddleware,
   conversacion: ConversacionController,
   mensaje: MensajeController,
   plantilla: PlantillaNotificacionController,
 ): Router {
   const router = Router()
-  const auth = createAuthMiddleware(new JwtTokenGenerator())
 
   router.post('/conversaciones', auth, conversacion.iniciar)
   router.get('/conversaciones/:id/historial', auth, conversacion.historial)

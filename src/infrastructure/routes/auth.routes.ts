@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { AuthController, AccesibilidadController, GestionCuentasController, RolController } from '../controllers/accesoRegistro/AuthController'
-import { createAuthMiddleware } from '../middlewares/authMiddleware'
+import { AuthMiddleware } from '../middlewares/authMiddleware'
 import { requireAdministrador } from '../middlewares/roleMiddleware'
 import { validar } from '../middlewares/validationMiddleware'
 import {
@@ -14,17 +14,15 @@ import {
   crearRolSchema,
   asignarPermisosSchema,
 } from '../validators/accesoRegistro/accesoRegistro.schema'
-import { JwtTokenGenerator } from '../services/auth/JwtTokenGenerator'
 
 export function createAuthRoutes(
+  authMiddleware: AuthMiddleware,
   auth: AuthController,
   accesibilidad: AccesibilidadController,
   cuentas: GestionCuentasController,
   roles: RolController,
 ): Router {
   const router = Router()
-  const tokenGenerator = new JwtTokenGenerator()
-  const authMiddleware = createAuthMiddleware(tokenGenerator)
 
   router.post('/candidatos/registro', validar(registrarCandidatoSchema), auth.registrarCandidato)
   router.post('/empresas/registro', validar(registrarEmpresaSchema), auth.registrarEmpresa)
