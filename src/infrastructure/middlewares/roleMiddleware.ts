@@ -29,7 +29,7 @@ export function requireCandidato() {
 }
 
 export function requireEmpresa() {
-  return requireRol('empresa', 'reclutador')
+  return requireRol('empresa')
 }
 
 export function requireIntermediador() {
@@ -45,5 +45,5 @@ export function requireIntermediadorOAdministrador() {
 }
 
 export function requireEmpresaOAdministrador() {
-  return requireRol('empresa', 'reclutador', 'admin', 'superadmin')
+  return requireRol('empresa', 'admin', 'superadmin')
 }
