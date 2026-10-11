@@ -13,7 +13,7 @@ export class PostgresRolRepository implements IRolRepository {
          id: row.id_rol,
          nombre: row.nombre,
          descripcion: row.descripcion ?? undefined,
-         fechaCreacion: new Date (row.fecha_descripcion),
+         fechaCreacion: new Date (row.fecha_creacion),
          permisos: row.permisos
       })
    }
@@ -81,7 +81,7 @@ export class PostgresRolRepository implements IRolRepository {
    async update(rol: Rol): Promise<void> {
       await execute(`
          UPDATE rol SET
-            descripcion = $1,
+            descripcion = $1
          WHERE id_rol = $2`, 
          [rol.getDescripcion(), rol.id]
       )

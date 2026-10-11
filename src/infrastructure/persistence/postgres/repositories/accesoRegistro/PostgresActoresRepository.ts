@@ -74,8 +74,8 @@ export class PostgresCandidatoRepository implements ICandidatoRepository {
          `INSERT INTO candidato
          (id_usuario,nombres,apellidos,dni,fecha_nacimiento,telefono,distrito)
          VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-         [candidato.idUsuario, candidato.getNombres, candidato.getApellidos, candidato.getDni, 
-         candidato.fechaNacimiento, candidato.getTelefono, candidato.getDistrito]
+         [candidato.idUsuario, candidato.getNombres(), candidato.getApellidos(), candidato.getDni(), 
+         candidato.fechaNacimiento, candidato.getTelefono(), candidato.getDistrito()]
       )
       return this.toEntity(row!)
    }
@@ -85,8 +85,8 @@ export class PostgresCandidatoRepository implements ICandidatoRepository {
          `UPDATE candidato SET 
             telefono = $1,
             distrito = $2
-            WHERE id_candidato = $3`, 
-         [candidato.getTelefono, candidato.getDistrito, candidato.id]
+         WHERE id_candidato = $3`, 
+         [candidato.getTelefono(), candidato.getDistrito(), candidato.id]
       )
    }
 }
@@ -114,8 +114,9 @@ export class PostgresEmpresaEmpleadoraRepository implements IEmpresaEmpleadoraRe
             representante_legal, 
             telefono_empresa, 
             correo_empresa
-            FROM empresa_empleadora WHERE id_empresa = $1`, 
-            [id],
+         FROM empresa_empleadora 
+         WHERE id_empresa = $1`, 
+         [id],
       )
       return row ? this.toEntity(row) : null 
    }
@@ -130,8 +131,9 @@ export class PostgresEmpresaEmpleadoraRepository implements IEmpresaEmpleadoraRe
             representante_legal, 
             telefono_empresa, 
             correo_empresa
-            FROM empresa_empleadora WHERE id_usuario = $1`, 
-            [idUsuario],
+         FROM empresa_empleadora 
+         WHERE id_usuario = $1`, 
+         [idUsuario],
       )
       return row ? this.toEntity(row) : null 
    }
@@ -139,7 +141,9 @@ export class PostgresEmpresaEmpleadoraRepository implements IEmpresaEmpleadoraRe
    async existsByRuc(ruc: string): Promise<boolean> {
       const row = await queryOne<any>(
          `SELECT EXISTS (
-            SELECT 1 FROM empresa_empleadora WHERE ruc=$1
+            SELECT 1 
+            FROM empresa_empleadora 
+            WHERE ruc=$1
          )`, [ruc],
       )
       return row?.exists ?? false
@@ -162,10 +166,10 @@ export class PostgresEmpresaEmpleadoraRepository implements IEmpresaEmpleadoraRe
             razon_social = $1,
             representante_legal = $2,
             telefono_empresa = $3,
-            correo_empresa = $4,
-            WHERE id_empresa = $5`, 
+            correo_empresa = $4
+         WHERE id_empresa = $5`,
          [empresa.getRazonSocial(), empresa.getRepresentanteLegal(), empresa.getTelefonoEmpresa(), 
-         empresa.getTelefonoEmpresa(), empresa.getCorreoEmpresa(), empresa.id]
+         empresa.getCorreoEmpresa(), empresa.id]
       )
    }
 }
@@ -177,7 +181,7 @@ export class PostgresIntermediadorRepository implements IIntermediadorLaboralRep
          idUsuario: row.id_usuario,
          nombres: row.nombres,
          apellidos: row.apellidos,
-         dni: row.dni,
+         dni: new Dni(row.dni),
          entidadOrigen: row.entidad_origen ?? undefined,
          telefono: row.telefono ?? undefined,
       })
@@ -193,8 +197,9 @@ export class PostgresIntermediadorRepository implements IIntermediadorLaboralRep
             dni, 
             entidad_origen, 
             telefono
-            FROM intermediador_laboral WHERE id_intermediador = $1`, 
-            [id],
+         FROM intermediador_laboral 
+         WHERE id_intermediador = $1`, 
+         [id],
       )
       return row ? this.toEntity(row) : null 
    }
@@ -209,8 +214,8 @@ export class PostgresIntermediadorRepository implements IIntermediadorLaboralRep
             dni, 
             entidad_origen, 
             telefono
-            FROM intermediador_laboral WHERE id_usuario = $1`, 
-            [idUsuario],
+         FROM intermediador_laboral WHERE id_usuario = $1`, 
+         [idUsuario],
       )
       return row ? this.toEntity(row) : null 
    }
@@ -218,7 +223,9 @@ export class PostgresIntermediadorRepository implements IIntermediadorLaboralRep
    async existsByDni(dni: string): Promise<boolean> {
       const row = await queryOne<any>(
          `SELECT EXISTS (
-            SELECT 1 FROM intermediador_laboral WHERE dni=$1
+            SELECT 1 
+            FROM intermediador_laboral 
+            WHERE dni=$1
          )`, [dni],
       )
       return row?.exists ?? false
@@ -264,8 +271,9 @@ export class PostgresAdministradorRepository implements IAdministradorRepository
             nombres, 
             apellidos, 
             nivel 
-            FROM administrador WHERE id_intermediador = $1`, 
-            [id],
+         FROM administrador 
+         WHERE id_administrador = $1`, 
+         [id],
       )
       return row ? this.toEntity(row) : null 
    }
@@ -278,15 +286,16 @@ export class PostgresAdministradorRepository implements IAdministradorRepository
             nombres, 
             apellidos, 
             nivel 
-            FROM administrador WHERE id_usuario = $1`, 
-            [idUsuario],
+         FROM administrador 
+         WHERE id_usuario = $1`, 
+         [idUsuario],
       )
       return row ? this.toEntity(row) : null 
    }
 
    async save(administrador: Administrador): Promise<Administrador> {
       const row = await queryOne<any>(
-         `INSERT INTO intermediador_laboral
+         `INSERT INTO administrador
          (id_usuario,nombres,apellidos,nivel)
          VALUES ($1,$2,$3,$4) RETURNING *`,
          [administrador.idUsuario, administrador.getNombres(), 

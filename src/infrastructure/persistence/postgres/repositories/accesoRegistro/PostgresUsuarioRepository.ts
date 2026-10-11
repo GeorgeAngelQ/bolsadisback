@@ -94,6 +94,6 @@ export class PostgresUsuarioRepository implements IUsuarioRepository {
          INNER JOIN usuario u ON u.id_usuario=a.id_usuario 
          WHERE u.estado='activo'`,
       )
-      return row?.count ?? 0
+      return Number(row?.count ?? 0)
    }
 }
