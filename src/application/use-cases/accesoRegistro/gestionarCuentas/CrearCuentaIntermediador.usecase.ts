@@ -20,7 +20,7 @@ import { DuplicateEntityError, EntityNotFoundError } from '@domain/errors/Domain
 
 import { IAuditLoggerService } from '@application/ports/IAuditLoggerService'
 import { IEmailService } from '@application/ports/IEmailService'
-import { IUnitWork } from '@application/ports/IUnitOfWork'
+import { IUnitOfWork } from '@application/ports/IUnitOfWork'
 import { ILogger } from '@application/ports/ILogger'
 
 export interface CrearCuentaIntermediadorInputDto {
@@ -42,7 +42,7 @@ export interface CrearCuentaIntermediadorOutputDto {
 
 export class CrearCuentaIntermediadorUseCase {
   constructor(
-    private readonly unitWork: IUnitWork,
+    private readonly unitWork: IUnitOfWork,
     private readonly usuarioRepository: IUsuarioRepository,
     private readonly intermediadorRepository: IIntermediadorLaboralRepository,
     private readonly credencialRepository: ICredencialAccesoRepository,

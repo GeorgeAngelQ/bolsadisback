@@ -20,7 +20,7 @@ import { DuplicateEntityError, EntityNotFoundError } from '@domain/errors/Domain
 
 import { IAuditLoggerService } from '@application/ports/IAuditLoggerService'
 import { IEmailService } from '@application/ports/IEmailService'
-import { IUnitWork } from '@application/ports/IUnitOfWork'
+import { IUnitOfWork } from '@application/ports/IUnitOfWork'
 import { ILogger } from '@application/ports/ILogger'
 
 import { RegistrarEmpresaInputDto } from '@application/use-cases/accesoRegistro/registrarEmpresa/RegistrarEmpresaInput.dto'
@@ -28,7 +28,7 @@ import { RegistrarEmpresaOutputDto } from '@application/use-cases/accesoRegistro
 
 export class RegistrarEmpresaUseCase {
   constructor(
-    private readonly unitOfWork: IUnitWork,
+    private readonly unitOfWork: IUnitOfWork,
     private readonly usuarioRepository: IUsuarioRepository,
     private readonly empresaRepository: IEmpresaEmpleadoraRepository,
     private readonly credencialRepository: ICredencialAccesoRepository,
