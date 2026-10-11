@@ -24,10 +24,10 @@ import { execute, query, queryOne } from '../../connection/PostgresConnection';
 export class PostgresPerfilCandidatoRepository implements IPerfilCandidatoRepository {
    private toEntity(row: any): PerfilCandidato {
       return new PerfilCandidato ({
-         id: row.id,
+         id: row.id_perfil,
          idCandidato: row.id_candidato,
          resumenProfesional: row.resumen_profesional,
-         nivelEducativo: row.NivelEducativo ?? undefined,
+         nivelEducativo: row.nivel_educativo as NivelEducativo ?? undefined,
          visible: row.visible,
          porcentajeCompletitud: row.porcentaje_completitud,
          fechaActualizacion: new Date(row.fecha_actualizacion) ?? undefined
@@ -164,7 +164,7 @@ export class PostgresHabilidadRepository implements IHabilidadRepository{
 export class PostgresExperienciaLaboralRepository implements IExperienciaLaboralRepository {
    private toEntity(row:any): ExperienciaLaboral {
       return new ExperienciaLaboral ({
-         id: row.id,
+         id: row.id_experiencia,
          idPerfil: row.id_perfil,
          cargo: row.cargo,
          empresa: row.empresa,
@@ -197,7 +197,7 @@ export class PostgresExperienciaLaboralRepository implements IExperienciaLaboral
    async save(experiencia: ExperienciaLaboral): Promise<ExperienciaLaboral> {
       const row = await queryOne<any>(`
          INSERT INTO experiencia_laboral
-         (id_perfil, cargo, empresa. fecha_inicio, fecha_fin, trabajo_actual, descripcion)
+         (id_perfil, cargo, empresa, fecha_inicio, fecha_fin, trabajo_actual, descripcion)
          VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`, 
          [experiencia.idPerfil, experiencia.getCargo(), experiencia.getEmpresa(), experiencia.getFechaInicio(), 
          experiencia.getFechaFin(), experiencia.isTrabajoActual(), experiencia.getDescripcion()]
@@ -229,13 +229,13 @@ export class PostgresExperienciaLaboralRepository implements IExperienciaLaboral
 export class PostgresFormacionAcademicaRepository implements IFormacionAcademicaRepository {
    private toEntity(row:any): FormacionAcademica {
       return new FormacionAcademica({
-         id: row.id,
-         idPerfil: row.idPerfil,
+         id: row.id_formacion,
+         idPerfil: row.id_perfil,
          institucion: row.institucion,
          titulo: row.titulo,
          nivel: row.nivel as NivelEducativo,
-         fechaInicio: row.fechaInicio,
-         fechaFin: row.fecha_fin ?? undefined,
+         fechaInicio: new Date(row.fechaInicio) ?? undefined,
+         fechaFin: new Date(row.fecha_fin) ?? undefined,
          enCurso: row.en_curso
       })
    }
@@ -251,13 +251,15 @@ export class PostgresFormacionAcademicaRepository implements IFormacionAcademica
             fecha_fin,
             en_curso
          FROM formacion_academica
-         WHERE id_perfil = $1`)
+         WHERE id_perfil = $1`,
+         [idPerfil]
+      )
       return rows.map(this.toEntity)
    }
 
    async save(formacion: FormacionAcademica): Promise<FormacionAcademica> {
       const row = await queryOne<any>(`
-         INSERT INTO formacion_laboral
+         INSERT INTO formacion_academica
          (id_perfil, institucion, titulo, nivel, fecha_inicio, fecha_fin, en_curso)
          VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`, 
          [formacion.idPerfil, formacion.getInstitucion(), formacion.getTitulo(), formacion.getNivel(),
@@ -267,7 +269,7 @@ export class PostgresFormacionAcademicaRepository implements IFormacionAcademica
 
    async update(formacion: FormacionAcademica): Promise<void> {
       await execute(`
-         UPDATE formacion_laboral SET
+         UPDATE formacion_academica SET
             institucion = $1,
             titulo = $2,
             nivel = $3,
@@ -292,11 +294,11 @@ export class PostgresFormacionAcademicaRepository implements IFormacionAcademica
 export class PostgresTipoDiscapacidadRepository implements ITipoDiscapacidadRepository {
    private toEntity(row:any) : TipoDiscapacidad {
       return new TipoDiscapacidad ({
-         id: row.id,
+         id: row.id_tipo_discapacidad,
          nombre: row.nombre,
          categoria: row.categoria_discapacidad as CategoriaDiscapacidad,
          descripcion: row.descripcion ?? undefined,
-         codigoConadis: row.codigo_conadis
+         codigoConadis: row.codigo_conadis ?? undefined
       })
    }
    async findById(id: number): Promise<TipoDiscapacidad | null> {
@@ -354,7 +356,9 @@ export class PostgresTipoDiscapacidadRepository implements ITipoDiscapacidadRepo
             td.codigo_conadis
          FROM tipo_discapacidad td
          INNER JOIN perfil_discapacidad pd ON pd.id_tipo_discapacidad = td.id_tipo_discapacidad
-         WHERE pd.id_perfil = $1`)
+         WHERE pd.id_perfil = $1`, 
+         [idPerfil]
+      )
       return rows.map(this.toEntity)
    }
 
@@ -374,7 +378,7 @@ export class PostgresTipoDiscapacidadRepository implements ITipoDiscapacidadRepo
       }
    }
 
-   async countCandidatosActivosByTipo(idTipo: number): Promise<number> {
+   async countCandidatosActivosByTipo(id: number): Promise<number> {
       const row = await queryOne<{ total: number }>(`
          SELECT 
             COUNT(*) AS total
@@ -382,8 +386,8 @@ export class PostgresTipoDiscapacidadRepository implements ITipoDiscapacidadRepo
          INNER JOIN perfil_candidato pc ON pc.id_perfil = pd.id_perfil
          INNER JOIN candidato c ON c.id_candidato = pc.id_candidato
          INNER JOIN usuario u ON u.id_usuario = c.id_usuario
-         WHERE pd.id_tipo_discapacidad $1 AND u.estado = 'activo'`, 
-         [idTipo]
+         WHERE pd.id_tipo_discapacidad = $1 AND u.estado = 'activo'`, 
+         [id]
       )
       return row?.total ?? 0
    }
@@ -608,12 +612,12 @@ export class PostgresPerfilEmpresaRepository implements IPerfilEmpresaRepository
          descripcion: row.descripcion ?? undefined,
          sector: row.sector ?? undefined,
          tamano: row.tamano as TamanoEmpresa ?? undefined,
-         tipoEntidad: row.tipo_entidad as TipoEntidad, // OBS
+         tipoEntidad: row.tipo_entidad as TipoEntidad,
          urlLogo: row.url_logo ?? undefined,
          sitioWeb: row.sitio_web ?? undefined,
          politicaInclusion: row.politica_inclusion ?? undefined,
          totalTrabajadores: row.total_trabajadores,
-         fechaActualizacion: row.fecha_actualizacion
+         fechaActualizacion: new Date(row.fecha_actualizacion)
       })
    }
    async findById(id: number): Promise<PerfilEmpresa | null> {
@@ -650,7 +654,9 @@ export class PostgresPerfilEmpresaRepository implements IPerfilEmpresaRepository
             total_trabajadores,
             fecha_actualizacion
          FROM perfil_empresa
-         WHERE id_empresa = $1`)
+         WHERE id_empresa = $1`, 
+         [idEmpresa]
+      )
       return row ? this.toEntity(row) : null
    }
 
