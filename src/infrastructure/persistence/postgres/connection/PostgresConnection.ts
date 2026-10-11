@@ -1,4 +1,5 @@
-import { Pool, QueryResultRow} from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow} from 'pg';
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 const pool = new Pool({
    host: process.env.DB_HOST,
@@ -11,6 +12,16 @@ const pool = new Pool({
    connectionTimeoutMillis: 5000,
    options: `-c search_path=${process.env.DB_SCHEMA}`
 })
+
+const transactionContext = new AsyncLocalStorage<PoolClient>();
+
+export async function runQuery<T extends QueryResultRow>(
+   sql: string,
+   params: any[]
+): Promise<QueryResult<T>> {
+   const client = transactionContext.getStore()
+   return client ? client.query<T>(sql, params) : pool.query<T>(sql, params)
+}
 
 export async function query <T extends QueryResultRow>(
    sql: string,
@@ -26,6 +37,34 @@ export async function queryOne<T extends QueryResultRow>(
 ): Promise<T | null> {
    const result = await pool.query<T>(sql, params)
    return result.rows[0] ?? null
+}
+
+export async function runInTransaction<T>(work: ()=> Promise<T>): Promise<T> {
+   if (transactionContext.getStore()) return work()
+   
+   const client = await pool.connect()
+   let releaseError: Error | undefined
+   try {
+      await client.query('BEGIN')
+      
+      const result = await transactionContext.run(client, work)
+
+      await client.query('COMMIT')
+
+      return result
+   }
+   catch (error) {
+      try {
+         await client.query('ROLLBACK')
+      } catch (rollbackError) {
+         console.error('Falló el ROLLBACK: ', rollbackError)
+         releaseError = rollbackError as Error
+      }
+      throw error
+   }
+   finally {
+      client.release(releaseError)
+   }
 }
 
 export async function execute(
