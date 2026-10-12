@@ -1,12 +1,16 @@
-import { IPerfilCandidatoRepository } from '../../../../domain/repositories/gestionPerfil/IPerfilCandidatoRepository'
-import { ICurriculumVitaeRepository } from '../../../../domain/repositories/gestionPerfil/PerfilRepositories'
-import { IFileStorageService } from '../../../ports/IFileStorageService'
-import { IAccessibilityCheckerService } from '../../../ports/IAccessibilityCheckerService'
-import { IAuditLoggerService } from '../../../ports/IAuditLoggerService'
-import { CurriculumVitae } from '../../../../domain/entities/gestionPerfil/CurriculumVitae.entity'
-import { EntityNotFoundError, BusinessRuleViolationError } from '../../../../domain/errors/DomainError'
+import { CurriculumVitae } from '@domain/entities/gestionPerfil/CurriculumVitae.entity'
 
-//  Subir CV 
+import { IPerfilCandidatoRepository } from '@domain/repositories/gestionPerfil/IPerfilCandidatoRepository'
+import { ICurriculumVitaeRepository } from '@domain/repositories/gestionPerfil/PerfilRepositories'
+
+import { EntityNotFoundError, BusinessRuleViolationError } from '@domain/errors/DomainError'
+
+import { IFileStorageService } from '@application/ports/IFileStorageService'
+import { IAccessibilityCheckerService } from '@application/ports/IAccessibilityCheckerService'
+import { IAuditLoggerService } from '@application/ports/IAuditLoggerService'
+
+import { IUnitOfWork } from '@application/ports/IUnitOfWork'
+
 
 export interface SubirCVInputDto {
   idCandidato: number
@@ -29,6 +33,7 @@ const MAX_TAMANO_BYTES = 5 * 1024 * 1024
 
 export class SubirCVUseCase {
   constructor(
+    private readonly unitOfWork: IUnitOfWork,
     private readonly perfilRepository: IPerfilCandidatoRepository,
     private readonly cvRepository: ICurriculumVitaeRepository,
     private readonly fileStorageService: IFileStorageService,
@@ -37,6 +42,7 @@ export class SubirCVUseCase {
   ) {}
 
   async execute(input: SubirCVInputDto): Promise<SubirCVOutputDto> {
+    
     if (input.tamanoBytes > MAX_TAMANO_BYTES) {
       throw new BusinessRuleViolationError('cv', 'El archivo no puede superar 5MB')
     }
@@ -46,42 +52,55 @@ export class SubirCVUseCase {
     const perfil = await this.perfilRepository.findByIdCandidato(input.idCandidato)
     if (!perfil) throw new EntityNotFoundError('PerfilCandidato', input.idCandidato)
 
-    // Verificar accesibilidad — RN-19
     const resultadoAccesibilidad = await this.accessibilityChecker.verificarCV(
       input.fileBuffer,
       input.mimeType,
     )
-
-    // Subir archivo al storage
     const url = await this.fileStorageService.upload(
       input.fileBuffer,
-      `cv/${input.idCandidato}/${input.nombreArchivo}`,
+      `cv/${input.idCandidato}/${Date.now()}-${input.nombreArchivo}`,
       input.mimeType,
     )
 
-    // Guardar o actualizar el CV
-    let cv = await this.cvRepository.findByIdPerfil(perfil.id)
-    if (cv) {
-      cv.registrarSubida(url, input.formato, resultadoAccesibilidad.esAccesible)
-      await this.cvRepository.update(cv)
-    } else {
-      cv = await this.cvRepository.save(
-        new CurriculumVitae({
-          id: 0,
-          idPerfil: perfil.id,
-          urlArchivo: url,
-          formatoArchivo: input.formato,
-          fechaSubida: new Date(),
-          generadoPorPlataforma: false,
-          accesible: resultadoAccesibilidad.esAccesible,
-        }),
-      )
+    let resultado: { cv: CurriculumVitae; nuevoPorcentaje: number }
+    try {
+      resultado = await this.unitOfWork.execute(async () => {
+        let cv = await this.cvRepository.findByIdPerfil(perfil.id)
+        const esNuevo = !cv
+
+        if (cv) {
+          cv.registrarSubida(url, input.formato, resultadoAccesibilidad.esAccesible)
+          await this.cvRepository.update(cv)
+        } else {
+          cv = await this.cvRepository.save(
+            new CurriculumVitae({
+              id: 0,
+              idPerfil: perfil.id,
+              urlArchivo: url,
+              formatoArchivo: input.formato,
+              fechaSubida: new Date(),
+              generadoPorPlataforma: false,
+              accesible: resultadoAccesibilidad.esAccesible,
+            }),
+          )
+        }
+
+        const nuevoPorcentaje = esNuevo
+          ? Math.min(perfil.getPorcentajeCompletitud() + 20, 100)
+          : perfil.getPorcentajeCompletitud()
+        perfil.actualizarPorcentaje(nuevoPorcentaje)
+        await this.perfilRepository.update(perfil)
+
+        return { cv, nuevoPorcentaje }
+      })
+    } catch (error) {
+
+      await this.fileStorageService.delete(url).catch(() => undefined)
+      throw error
     }
 
-    // Recalcular completitud
-    const nuevoPorcentaje = Math.min(perfil.getPorcentajeCompletitud() + 20, 100)
-    perfil.actualizarPorcentaje(nuevoPorcentaje)
-    await this.perfilRepository.update(perfil)
+    const { cv, nuevoPorcentaje } = resultado 
+
 
     await this.auditLogger.log({
       idUsuario: input.idUsuario,
@@ -101,7 +120,6 @@ export class SubirCVUseCase {
   }
 }
 
-//  Generar CV automático 
 
 export interface GenerarCVOutputDto {
   urlCV: string
@@ -110,6 +128,7 @@ export interface GenerarCVOutputDto {
 
 export class GenerarCVAutomaticoUseCase {
   constructor(
+    private readonly unitOfWork: IUnitOfWork,
     private readonly perfilRepository: IPerfilCandidatoRepository,
     private readonly cvRepository: ICurriculumVitaeRepository,
     private readonly fileStorageService: IFileStorageService,
@@ -120,7 +139,6 @@ export class GenerarCVAutomaticoUseCase {
     const perfil = await this.perfilRepository.findByIdCandidato(idCandidato)
     if (!perfil) throw new EntityNotFoundError('PerfilCandidato', idCandidato)
 
-    // RN-12: necesita al menos datos básicos para generar
     if (perfil.getPorcentajeCompletitud() < 40) {
       throw new BusinessRuleViolationError(
         'RN-12',
@@ -128,35 +146,39 @@ export class GenerarCVAutomaticoUseCase {
       )
     }
 
-    // En producción aquí se integraría un generador de PDF real
     const cvBuffer = Buffer.from(`CV generado para candidato ${idCandidato}`)
+
     const url = await this.fileStorageService.upload(
       cvBuffer,
       `cv/${idCandidato}/cv-generado.pdf`,
       'application/pdf',
     )
 
-    let cv = await this.cvRepository.findByIdPerfil(perfil.id)
-    if (cv) {
-      cv.registrarGeneracion(url)
-      await this.cvRepository.update(cv)
-    } else {
-      cv = await this.cvRepository.save(
-        new CurriculumVitae({
-          id: 0,
-          idPerfil: perfil.id,
-          urlArchivo: url,
-          formatoArchivo: 'pdf',
-          fechaSubida: new Date(),
-          generadoPorPlataforma: true,
-          accesible: true,
-        }),
-      )
-    }
+    const {cv, nuevoPorcentaje} = await this.unitOfWork.execute(async () => {
+      let cv = await this.cvRepository.findByIdPerfil(perfil.id)
+      if (cv) {
+        cv.registrarGeneracion(url)
+        await this.cvRepository.update(cv)
+      } else {
+        cv = await this.cvRepository.save(
+          new CurriculumVitae({
+            id: 0,
+            idPerfil: perfil.id,
+            urlArchivo: url,
+            formatoArchivo: 'pdf',
+            fechaSubida: new Date(),
+            generadoPorPlataforma: true,
+            accesible: true,
+          }),
+        )
+      }
 
-    const nuevoPorcentaje = Math.min(perfil.getPorcentajeCompletitud() + 20, 100)
-    perfil.actualizarPorcentaje(nuevoPorcentaje)
-    await this.perfilRepository.update(perfil)
+      const nuevoPorcentaje = Math.min(perfil.getPorcentajeCompletitud() + 20, 100)
+      perfil.actualizarPorcentaje(nuevoPorcentaje)
+      await this.perfilRepository.update(perfil)
+
+      return { cv, nuevoPorcentaje }
+    })
 
     await this.auditLogger.log({
       idUsuario,
@@ -171,7 +193,6 @@ export class GenerarCVAutomaticoUseCase {
   }
 }
 
-// ---------- Descargar CV ----------
 
 export class DescargarCVUseCase {
   constructor(

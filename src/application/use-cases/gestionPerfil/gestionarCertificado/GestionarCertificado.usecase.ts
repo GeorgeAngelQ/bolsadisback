@@ -1,11 +1,15 @@
-import { IPerfilCandidatoRepository } from '../../../../domain/repositories/gestionPerfil/IPerfilCandidatoRepository'
-import { ICertificadoDiscapacidadRepository } from '../../../../domain/repositories/gestionPerfil/PerfilRepositories'
-import { IFileStorageService } from '../../../ports/IFileStorageService'
-import { IAuditLoggerService } from '../../../ports/IAuditLoggerService'
-import { CertificadoDiscapacidad } from '../../../../domain/entities/gestionPerfil/CertificadoDiscapacidad.entity'
-import { DuplicateEntityError, EntityNotFoundError } from '../../../../domain/errors/DomainError'
+import { CertificadoDiscapacidad } from '@domain/entities/gestionPerfil/CertificadoDiscapacidad.entity'
 
-//  Registrar certificado 
+import { IPerfilCandidatoRepository } from '@domain/repositories/gestionPerfil/IPerfilCandidatoRepository'
+import { ICertificadoDiscapacidadRepository } from '@domain/repositories/gestionPerfil/PerfilRepositories'
+
+import { DuplicateEntityError, EntityNotFoundError } from '@domain/errors/DomainError'
+
+import { IFileStorageService } from '@application/ports/IFileStorageService'
+import { IAuditLoggerService } from '@application/ports/IAuditLoggerService'
+
+import { IUnitOfWork } from '@application/ports/IUnitOfWork'
+
 
 export interface RegistrarCertificadoInputDto {
   idCandidato: number
@@ -28,6 +32,7 @@ export interface RegistrarCertificadoOutputDto {
 
 export class RegistrarCertificadoDiscapacidadUseCase {
   constructor(
+    private readonly unitOfWork: IUnitOfWork,
     private readonly perfilRepository: IPerfilCandidatoRepository,
     private readonly certificadoRepository: ICertificadoDiscapacidadRepository,
     private readonly fileStorageService: IFileStorageService,
@@ -35,10 +40,10 @@ export class RegistrarCertificadoDiscapacidadUseCase {
   ) {}
 
   async execute(input: RegistrarCertificadoInputDto): Promise<RegistrarCertificadoOutputDto> {
+
     const perfil = await this.perfilRepository.findByIdCandidato(input.idCandidato)
     if (!perfil) throw new EntityNotFoundError('PerfilCandidato', input.idCandidato)
 
-    // Número de carné único en el sistema
     const carneExistente = await this.certificadoRepository.existsByNumeroCarne(
       input.numeroCarne,
       perfil.id,
@@ -50,33 +55,42 @@ export class RegistrarCertificadoDiscapacidadUseCase {
     if (input.fileBuffer && input.nombreArchivo && input.mimeType) {
       urlDocumento = await this.fileStorageService.upload(
         input.fileBuffer,
-        `certificados/${input.idCandidato}/${input.nombreArchivo}`,
+        `certificados/${input.idCandidato}/${Date.now()}-${input.nombreArchivo}`,
         input.mimeType,
       )
     }
 
-    let certificado = await this.certificadoRepository.findByIdPerfil(perfil.id)
-    if (certificado) {
-      certificado.actualizar({
-        numeroCarne: input.numeroCarne,
-        fechaEmision: new Date(input.fechaEmision),
-        fechaVencimiento: input.fechaVencimiento ? new Date(input.fechaVencimiento) : undefined,
-        urlDocumento,
+    let certificado: CertificadoDiscapacidad
+    
+    try {
+      certificado = await this.unitOfWork.execute(async () => {
+        const existente = await this.certificadoRepository.findByIdPerfil(perfil.id)
+        if (existente) {
+          existente.actualizar({
+            numeroCarne: input.numeroCarne,
+            fechaEmision: new Date(input.fechaEmision),
+            fechaVencimiento: input.fechaVencimiento ? new Date(input.fechaVencimiento) : undefined,
+            urlDocumento,
+          })
+          await this.certificadoRepository.update(existente)
+          return existente
+        }
+        return this.certificadoRepository.save(
+          new CertificadoDiscapacidad({
+            id: 0,
+            idPerfil: perfil.id,
+            numeroCarne: input.numeroCarne,
+            fechaEmision: new Date(input.fechaEmision),
+            fechaVencimiento: input.fechaVencimiento ? new Date(input.fechaVencimiento) : undefined,
+            entidadEmisora: 'CONADIS',
+            urlDocumento,
+            verificado: false,
+          }),
+        )
       })
-      await this.certificadoRepository.update(certificado)
-    } else {
-      certificado = await this.certificadoRepository.save(
-        new CertificadoDiscapacidad({
-          id: 0,
-          idPerfil: perfil.id,
-          numeroCarne: input.numeroCarne,
-          fechaEmision: new Date(input.fechaEmision),
-          fechaVencimiento: input.fechaVencimiento ? new Date(input.fechaVencimiento) : undefined,
-          entidadEmisora: 'CONADIS',
-          urlDocumento,
-          verificado: false,
-        }),
-      )
+    } catch (error) {
+      if (urlDocumento) await this.fileStorageService.delete(urlDocumento).catch(() => undefined)
+      throw error
     }
 
     await this.auditLogger.log({
@@ -97,8 +111,7 @@ export class RegistrarCertificadoDiscapacidadUseCase {
     }
   }
 }
-
-//  Verificar certificado (administrador) 
+ 
 
 export class VerificarCertificadoDiscapacidadUseCase {
   constructor(

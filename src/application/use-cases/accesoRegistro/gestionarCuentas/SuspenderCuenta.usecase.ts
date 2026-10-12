@@ -1,11 +1,16 @@
-import { IUsuarioRepository } from '../../../../domain/repositories/accesoRegistro/IUsuarioRepository'
-import { IAuditLoggerService } from '../../../ports/IAuditLoggerService'
-import { INotificationService } from '../../../ports/INotificationService'
+import { IUsuarioRepository } from '@domain/repositories/accesoRegistro/IUsuarioRepository'
+
 import {
   EntityNotFoundError,
   BusinessRuleViolationError,
-} from '../../../../domain/errors/DomainError'
-import { EstadoUsuario } from '../../../../domain/enums/EstadoUsuario.enum'
+} from '@domain/errors/DomainError'
+
+import { EstadoUsuario } from '@domain/enums/EstadoUsuario.enum'
+
+import { IAuditLoggerService } from '@application/ports/IAuditLoggerService'
+import { INotificationService } from '@application/ports/INotificationService'
+
+import { IUnitOfWork } from '@application/ports/IUnitOfWork'
 
 export interface SuspenderCuentaInputDto {
   idAdministrador: number
@@ -15,13 +20,14 @@ export interface SuspenderCuentaInputDto {
 
 export class SuspenderCuentaUseCase {
   constructor(
+    private readonly unitOfWork: IUnitOfWork,
     private readonly usuarioRepository: IUsuarioRepository,
     private readonly auditLogger: IAuditLoggerService,
     private readonly notificationService: INotificationService,
   ) {}
 
   async execute(input: SuspenderCuentaInputDto): Promise<void> {
-    // RN-59: debe existir al menos un administrador activo
+
     if (input.idAdministrador === input.idUsuario) {
       const totalAdmins = await this.usuarioRepository.countAdministradoresActivos()
       if (totalAdmins <= 1) {
@@ -39,14 +45,17 @@ export class SuspenderCuentaUseCase {
       throw new BusinessRuleViolationError('estado', 'No se puede suspender una cuenta eliminada')
     }
 
-    usuario.suspender()
-    await this.usuarioRepository.update(usuario)
+    await this.unitOfWork.execute (async () => {
 
-    await this.notificationService.notificar(
-      input.idUsuario,
-      'Cuenta suspendida',
-      'Tu cuenta ha sido suspendida. Contacta al administrador para más información.',
-    )
+      usuario.suspender()
+      await this.usuarioRepository.update(usuario)
+
+      await this.notificationService.notificar(
+        input.idUsuario,
+        'Cuenta suspendida',
+        'Tu cuenta ha sido suspendida. Contacta al administrador para más información.',
+      )
+    })
 
     await this.auditLogger.log({
       idUsuario: input.idAdministrador,

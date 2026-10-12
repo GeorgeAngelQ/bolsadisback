@@ -1,7 +1,4 @@
-import { 
-  Rol,
-  Permiso
-} from '../../entities/accesoRegistro/Rol.entity'
+import { Rol, Permiso } from '@domain/entities/accesoRegistro/Rol.entity'
 
 export interface IRolRepository {
   findById(id: number): Promise<Rol | null>
@@ -12,6 +9,7 @@ export interface IRolRepository {
   update(rol: Rol): Promise<void>
   findPermisosByRolId(idRol: number): Promise<Permiso[]>
   findAllPermisos(): Promise<Permiso[]>
+  countUsuariosByRol(idRol: number): Promise<number>
   syncPermisos(idRol: number, permisoIds: number[]): Promise<void>
   assignRolToUsuario(idUsuario: number, idRol: number): Promise<void>
   findRolesByUsuarioId(idUsuario: number): Promise<Rol[]>

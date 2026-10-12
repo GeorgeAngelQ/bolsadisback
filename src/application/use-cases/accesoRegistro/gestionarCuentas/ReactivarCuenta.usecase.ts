@@ -1,8 +1,13 @@
-import { IUsuarioRepository } from '../../../../domain/repositories/accesoRegistro/IUsuarioRepository'
-import { IAuditLoggerService } from '../../../ports/IAuditLoggerService'
-import { INotificationService } from '../../../ports/INotificationService'
-import { EntityNotFoundError, BusinessRuleViolationError } from '../../../../domain/errors/DomainError'
-import { EstadoUsuario } from '../../../../domain/enums/EstadoUsuario.enum'
+import { IUsuarioRepository } from '@domain/repositories/accesoRegistro/IUsuarioRepository'
+
+import { EstadoUsuario } from '@domain/enums/EstadoUsuario.enum'
+
+import { EntityNotFoundError, BusinessRuleViolationError } from '@domain/errors/DomainError'
+
+import { IAuditLoggerService } from '@application/ports/IAuditLoggerService'
+import { INotificationService } from '@application/ports/INotificationService'
+
+import { IUnitOfWork } from '@application/ports/IUnitOfWork'
 
 export interface ReactivarCuentaInputDto {
   idAdministrador: number
@@ -11,6 +16,7 @@ export interface ReactivarCuentaInputDto {
 
 export class ReactivarCuentaUseCase {
   constructor(
+    private readonly unitOfWork: IUnitOfWork,
     private readonly usuarioRepository: IUsuarioRepository,
     private readonly auditLogger: IAuditLoggerService,
     private readonly notificationService: INotificationService,
@@ -28,14 +34,17 @@ export class ReactivarCuentaUseCase {
       throw new BusinessRuleViolationError('estado', 'La cuenta ya está activa')
     }
 
-    usuario.reactivar()
-    await this.usuarioRepository.update(usuario)
+    await this.unitOfWork.execute(async () => {
+      
+      usuario.reactivar()
+      await this.usuarioRepository.update(usuario)
 
-    await this.notificationService.notificar(
-      input.idUsuario,
-      'Cuenta reactivada',
-      'Tu cuenta ha sido reactivada. Ya puedes acceder al portal.',
-    )
+      await this.notificationService.notificar(
+        input.idUsuario,
+        'Cuenta reactivada',
+        'Tu cuenta ha sido reactivada. Ya puedes acceder al portal.',
+      )
+    })
 
     await this.auditLogger.log({
       idUsuario: input.idAdministrador,

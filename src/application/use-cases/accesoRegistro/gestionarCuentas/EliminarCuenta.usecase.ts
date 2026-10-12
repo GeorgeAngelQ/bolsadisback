@@ -1,10 +1,10 @@
-import { IUsuarioRepository } from '../../../../domain/repositories/accesoRegistro/IUsuarioRepository'
-import { IAuditLoggerService } from '../../../ports/IAuditLoggerService'
+import { IUsuarioRepository } from '@domain/repositories/accesoRegistro/IUsuarioRepository'
+import { IAuditLoggerService } from '@application/ports/IAuditLoggerService'
 import {
   EntityNotFoundError,
   BusinessRuleViolationError,
-} from '../../../../domain/errors/DomainError'
-import { EstadoUsuario } from '../../../../domain/enums/EstadoUsuario.enum'
+} from '@domain/errors/DomainError'
+import { EstadoUsuario } from '@domain/enums/EstadoUsuario.enum'
 
 export interface EliminarCuentaInputDto {
   idAdministrador: number
@@ -19,7 +19,7 @@ export class EliminarCuentaUseCase {
   ) {}
 
   async execute(input: EliminarCuentaInputDto): Promise<void> {
-    // RN-59: no eliminar si es el único administrador activo
+
     if (input.idAdministrador === input.idUsuario) {
       const totalAdmins = await this.usuarioRepository.countAdministradoresActivos()
       if (totalAdmins <= 1) {

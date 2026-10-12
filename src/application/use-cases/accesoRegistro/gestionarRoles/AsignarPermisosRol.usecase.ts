@@ -2,6 +2,7 @@ import { IRolRepository } from '../../../../domain/repositories/accesoRegistro/I
 import { IAuditLoggerService } from '../../../ports/IAuditLoggerService'
 import { EntityNotFoundError } from '../../../../domain/errors/DomainError'
 import { Permiso } from '../../../../domain/entities/accesoRegistro/Rol.entity'
+import { IUnitOfWork } from '@application/ports/IUnitOfWork'
 
 export interface AsignarPermisosRolInputDto {
   idAdministrador: number
@@ -18,27 +19,30 @@ export interface AsignarPermisosRolOutputDto {
 
 export class AsignarPermisosRolUseCase {
   constructor(
+    private readonly unitOfWork: IUnitOfWork,
     private readonly rolRepository: IRolRepository,
     private readonly auditLogger: IAuditLoggerService,
   ) {}
 
   async execute(input: AsignarPermisosRolInputDto): Promise<AsignarPermisosRolOutputDto> {
+
     const rol = await this.rolRepository.findById(input.idRol)
     if (!rol) throw new EntityNotFoundError('Rol', input.idRol)
 
-    // Obtener permisos del catálogo
     const todosPermisos = await this.rolRepository.findAllPermisos()
     const permisosSeleccionados: Permiso[] = todosPermisos.filter(p =>
       input.permisoIds.includes(p.id),
     )
 
-    // Sincronizar permisos en la entidad y persistir
-    rol.sincronizarPermisos(permisosSeleccionados)
-    await this.rolRepository.syncPermisos(input.idRol, input.permisoIds)
+    const totalAfectados = await this.rolRepository.countUsuariosByRol(input.idRol)
+    
+    await this.unitOfWork.execute(async () => {
 
-    // Identificar usuarios afectados
-    const usuariosConRol = await this.rolRepository.findRolesByUsuarioId(input.idRol)
-    const totalAfectados = usuariosConRol.length
+      rol.sincronizarPermisos(permisosSeleccionados)
+      await this.rolRepository.syncPermisos(
+        input.idRol, 
+        permisosSeleccionados.map(p=>p.id))
+    })
 
     await this.auditLogger.log({
       idUsuario: input.idAdministrador,

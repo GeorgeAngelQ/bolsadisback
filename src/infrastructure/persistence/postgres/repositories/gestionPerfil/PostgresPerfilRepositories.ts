@@ -19,7 +19,7 @@ import {
    IPerfilEmpresaRepository, 
    ITipoDiscapacidadRepository 
 } from "@domain/repositories/gestionPerfil/PerfilRepositories";
-import { execute, query, queryOne } from '../../connection/PostgresConnection';
+import { execute, query, queryOne, runInTransaction } from '../../connection/PostgresConnection';
 
 export class PostgresPerfilCandidatoRepository implements IPerfilCandidatoRepository {
    private toEntity(row: any): PerfilCandidato {
@@ -363,19 +363,25 @@ export class PostgresTipoDiscapacidadRepository implements ITipoDiscapacidadRepo
    }
 
    async syncPerfilDiscapacidades(idPerfil: number, idTipos: number[]): Promise<void> {
-      await execute(`
-         DELETE FROM perfil_discapacidad 
-         WHERE id_perfil = $1`, 
-         [idPerfil]
-      )
-      for (const idTipo of idTipos){
+      
+      const ids = [...new Set(idTipos)]
+      
+      await runInTransaction( async () => {
          await execute(`
-            INSERT INTO perfil_discapacidad
-            (id_perfil, id_tipo_discapacidad)
-            VALUES ($1,$2)`, 
-            [idPerfil, idTipo]
+            DELETE FROM perfil_discapacidad 
+            WHERE id_perfil = $1`, 
+         [idPerfil]
          )
-      }
+         if (ids.length > 0){
+            await execute(`
+               INSERT INTO perfil_discapacidad
+               (id_perfil, id_tipo_discapacidad)
+               SELECT $1::int, t FROM unnest ($2::int[]) AS t`, 
+            [idPerfil, ids]
+            )
+         }
+      })
+
    }
 
    async countCandidatosActivosByTipo(id: number): Promise<number> {

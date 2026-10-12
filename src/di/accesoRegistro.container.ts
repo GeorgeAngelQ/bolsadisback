@@ -70,11 +70,11 @@ export function buildModulo1Container(repos: Modulo1Repos, shared: SharedService
       repos.preferenciaRepo, repos.rolRepo, passwordHasher, tokenGenerator, auditLogger, emailService, 
       logger
     ),
-    suspenderCuenta: new SuspenderCuentaUseCase(repos.usuarioRepo, auditLogger, notificationService),
-    reactivarCuenta: new ReactivarCuentaUseCase(repos.usuarioRepo, auditLogger, notificationService),
+    suspenderCuenta: new SuspenderCuentaUseCase(unitOfWork, repos.usuarioRepo, auditLogger, notificationService),
+    reactivarCuenta: new ReactivarCuentaUseCase(unitOfWork, repos.usuarioRepo, auditLogger, notificationService),
     eliminarCuenta: new EliminarCuentaUseCase(repos.usuarioRepo, auditLogger),
     crearRol: new CrearRolUseCase(repos.rolRepo, auditLogger),
-    asignarPermisos: new AsignarPermisosRolUseCase(repos.rolRepo, auditLogger),
+    asignarPermisos: new AsignarPermisosRolUseCase(unitOfWork, repos.rolRepo, auditLogger),
     listarRoles: new ListarRolesConPermisosUseCase(repos.rolRepo),
   }
 }

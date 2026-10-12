@@ -39,6 +39,7 @@ export type Modulo2Repos = Pick<
 export function buildModulo2Container(repos: Modulo2Repos, shared: SharedServices) {
   
   const { 
+    unitOfWork,
     auditLogger, 
     fileStorage, 
     accessibilityChecker
@@ -46,24 +47,25 @@ export function buildModulo2Container(repos: Modulo2Repos, shared: SharedService
 
   return {
     crearPerfilCandidato: new CrearPerfilCandidatoUseCase(
+      unitOfWork,
       repos.perfilCandidatoRepo, 
       repos.tipoDiscapacidadRepo,
       repos.ajusteRequeridoRepo, 
       auditLogger,
     ),
     editarPerfilCandidato: new EditarPerfilCandidatoUseCase(repos.perfilCandidatoRepo, auditLogger),
-    actualizarHabilidades: new ActualizarHabilidadesUseCase(repos.perfilCandidatoRepo, repos.habilidadRepo),
-    actualizarExperiencias: new ActualizarExperienciasLaboralesUseCase(repos.perfilCandidatoRepo, repos.experienciaRepo),
-    actualizarFormaciones: new ActualizarFormacionAcademicaUseCase(repos.perfilCandidatoRepo, repos.formacionRepo),
+    actualizarHabilidades: new ActualizarHabilidadesUseCase(unitOfWork, repos.perfilCandidatoRepo, repos.habilidadRepo),
+    actualizarExperiencias: new ActualizarExperienciasLaboralesUseCase(unitOfWork, repos.perfilCandidatoRepo, repos.experienciaRepo),
+    actualizarFormaciones: new ActualizarFormacionAcademicaUseCase(unitOfWork, repos.perfilCandidatoRepo, repos.formacionRepo),
 
     subirCV: new SubirCVUseCase(
-      repos.perfilCandidatoRepo, repos.cvRepo, fileStorage, accessibilityChecker, auditLogger,
+      unitOfWork, repos.perfilCandidatoRepo, repos.cvRepo, fileStorage, accessibilityChecker, auditLogger,
     ),
-    generarCV: new GenerarCVAutomaticoUseCase(repos.perfilCandidatoRepo, repos.cvRepo, fileStorage, auditLogger),
+    generarCV: new GenerarCVAutomaticoUseCase(unitOfWork, repos.perfilCandidatoRepo, repos.cvRepo, fileStorage, auditLogger),
     descargarCV: new DescargarCVUseCase(repos.perfilCandidatoRepo, repos.cvRepo, fileStorage),
 
     registrarCertificado: new RegistrarCertificadoDiscapacidadUseCase(
-      repos.perfilCandidatoRepo, repos.certificadoRepo, fileStorage, auditLogger,
+      unitOfWork,repos.perfilCandidatoRepo, repos.certificadoRepo, fileStorage, auditLogger,
     ),
     verificarCertificado: new VerificarCertificadoDiscapacidadUseCase(repos.certificadoRepo, auditLogger),
     

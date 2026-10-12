@@ -4,7 +4,7 @@ import { ICredencialAccesoRepository } from '@domain/repositories/accesoRegistro
 import { IPreferenciaAccesibilidadRepository } from '@domain/repositories/accesoRegistro/IPreferenciaAccesibilidadRepository';
 import { IRolRepository } from '@domain/repositories/accesoRegistro/IRolRepository';
 import { PreferenciaAccesibilidad, TamanoTexto, TipoContraste } from '@domain/entities/accesoRegistro/PreferenciaAccesibilidad.entity';
-import { execute, query, queryOne } from '../../connection/PostgresConnection';
+import { execute, query, queryOne, runInTransaction } from '../../connection/PostgresConnection';
 import { AccionPermiso } from '@domain/enums/AccionPermiso.enum';
 
 export class PostgresRolRepository implements IRolRepository {
@@ -124,20 +124,33 @@ export class PostgresRolRepository implements IRolRepository {
       return rows.map(this.toEntityPermiso)
    }
 
+   async countUsuariosByRol(idRol: number): Promise<number> {
+      const row = await queryOne<{total: string}>(`
+         SELECT
+            COUNT(*) AS total
+         FROM usuario_rol
+         WHERE id_rol = $1`,
+         [idRol])
+      return Number(row?.total ?? 0)
+   }
+
    async syncPermisos(idRol: number, permisoIds: number[]): Promise<void> {
-      await execute(`
-         DELETE FROM rol_permiso
-         WHERE id_rol = $1`, 
-         [idRol]
-      )      
-      for (const idPermiso of permisoIds) {
+      const ids = [...new Set(permisoIds)]
+
+      await runInTransaction(async () => {
          await execute(`
-            INSERT INTO rol_permiso
-            (id_rol, id_permiso)
-            VALUES ($1,$2) ON CONFLICT DO NOTHING`, 
-            [idRol, idPermiso]
-         )
-      }
+            DELETE FROM rol_permiso 
+            WHERE id_rol = $1`, 
+            [idRol])
+         if (ids.length > 0) {
+            await execute(`
+               INSERT INTO rol_permiso (id_rol, id_permiso)
+               SELECT $1::int, p FROM unnest($2::int[]) AS p
+               ON CONFLICT DO NOTHING`,
+               [idRol, ids]
+            )
+         }
+      })
    }
 
    async assignRolToUsuario(idUsuario: number, idRol: number): Promise<void> {
