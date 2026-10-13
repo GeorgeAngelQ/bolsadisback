@@ -1,54 +1,38 @@
 import { Request, Response, NextFunction } from 'express'
-import {
-  DomainError,
-  EntityNotFoundError,
-  BusinessRuleViolationError,
-  DuplicateEntityError,
-  InvalidEntityStateError,
-  UnauthorizedError,
-} from '../../domain/errors/DomainError'
+import { mapError } from '@infrastructure/errors/ErrorMapper'
+import { AuthRequest } from './authMiddleware'
 
 export function errorHandlerMiddleware(
-  err: Error,
-  _req: Request,
+  err: unknown,
+  req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): void {
-  console.error(`[Error] ${err.name}: ${err.message}`)
+  if (res.headersSent) return next(err)
+  
+  const { status, body } = mapError(err)
+  const requestId: string | undefined = res.locals.requestId
 
-  if (err instanceof UnauthorizedError) {
-    res.status(401).json({ error: err.message, code: 'UNAUTHORIZED' })
-    return
+  report(err, status, req as AuthRequest, requestId)
+
+  if  (status>=500 && requestId) {
+    body.requestId = requestId
+    res.status(status).json(body)
   }
 
-  if (err instanceof EntityNotFoundError) {
-    res.status(404).json({ error: err.message, code: 'NOT_FOUND' })
-    return
-  }
-
-  if (err instanceof DuplicateEntityError) {
-    res.status(409).json({ error: err.message, code: 'DUPLICATE' })
-    return
-  }
-
-  if (err instanceof BusinessRuleViolationError) {
-    res.status(422).json({ error: err.message, code: 'BUSINESS_RULE_VIOLATION' })
-    return
-  }
-
-  if (err instanceof InvalidEntityStateError) {
-    res.status(422).json({ error: err.message, code: 'INVALID_STATE' })
-    return
-  }
-
-  if (err instanceof DomainError) {
-    res.status(400).json({ error: err.message, code: 'DOMAIN_ERROR' })
-    return
-  }
-
-  // Error no controlado
-  res.status(500).json({
-    error: 'Error interno del servidor',
-    code: 'INTERNAL_ERROR',
-  })
+  function report(
+    err: unknown, 
+    status: number, 
+    req: AuthRequest, 
+    requestId?: string
+  ): void {
+    const head = `[${requestId ?? '-'}] ${req.method} ${req.originalUrl} -> ${status} (usuario: ${req.usuario?.idUsuario ?? ''})`
+    if (status >= 500) {
+      console.error(head, err)
+    }
+    else {
+      const detalle = err instanceof Error ? `${err.name}: ${err.message}`: String(err)
+      console.warn(`${head} ${detalle}`)
+    }
+  } 
 }
