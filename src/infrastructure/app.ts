@@ -1,16 +1,27 @@
 import express, { Application } from 'express'
+
+import { AppError } from '@shared/errors/AppError'
+import { ErrorType } from '@shared/errors/ErrorType'
+import { errorHandlerMiddleware } from '@infrastructure/middlewares/errorHandlerMiddleware'
+import { requestIdMiddleware } from '@infrastructure/middlewares/requestIdMiddleware'
+
 import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
-import { errorHandlerMiddleware } from './middlewares/errorHandlerMiddleware'
+
 import { AppContainer } from '@di/container'
+
 import { apiReference } from '@scalar/express-api-reference'
-import { openApiSpec } from '../docs/openapi'
-import { registerRoutes } from './routes/index.routes'
+import { openApiSpec } from '@docs/openapi'
+
+import { registerRoutes } from '@infrastructure/routes/index.routes'
+
+
 export function createApp(container: AppContainer): Application {
 
   const app = express()
 
+  app.use(requestIdMiddleware)
   app.use(
     helmet({
       contentSecurityPolicy: false,
@@ -49,14 +60,17 @@ export function createApp(container: AppContainer): Application {
 
   )
   app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toString() })
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toString() 
+    })
   })
 
   registerRoutes(app, container)
 
-  app.use((_req, res) => {
-    res.status(404).json({ error: 'NotFound', mensaje: 'Recurso no encontrado' })
-  })
+  app.use((_req, _res, next) => {
+    next(new AppError(ErrorType.NOT_FOUND, 'Recurso no encontrado')) 
+   })
 
   app.use(errorHandlerMiddleware)
 
