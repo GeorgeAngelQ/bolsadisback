@@ -7,24 +7,17 @@ export function validar(schema: ZodSchema, origen: 'body' | 'query' | 'params' =
     res: Response,
     next: NextFunction,
   ): void {
-    try {
-      const datos = req[origen]
-      const resultado = schema.parse(datos)
-      req[origen] = resultado
-      next()
-    } catch (err) {
-      if (err instanceof ZodError) {
-        res.status(400).json({
-          error: 'Datos de entrada inválidos',
-          code: 'VALIDATION_ERROR',
-          detalles: err.errors.map(e => ({
-            campo: e.path.join('.'),
-            mensaje: e.message,
-          })),
-        })
-        return
-      }
-      next(err)
+    const resultado = schema.safeParse(req[origen])
+
+    if (!resultado.success) return next(resultado.error)
+    if (origen === 'query') {
+      Object.defineProperty(req, 'query', {
+        value: resultado.data,
+        writable: true,
+        configurable: true
+      })
+    } else {
+      req[origen] = resultado.data
     }
   }
 }

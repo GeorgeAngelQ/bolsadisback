@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express'
 import { AuthRequest } from './authMiddleware'
-import { UnauthorizedError } from '../../domain/errors/DomainError'
+import { ForbiddenError, UnauthorizedError } from '../../domain/errors/DomainError'
 
 export function requireRol(...rolesPermitidos: string[]) {
   return function roleMiddleware(
@@ -14,7 +14,7 @@ export function requireRol(...rolesPermitidos: string[]) {
 
     if (!rolesPermitidos.includes(req.usuario.rol)) {
       return next(
-        new UnauthorizedError(
+        new ForbiddenError(
           `Acceso denegado. Se requiere uno de los roles: ${rolesPermitidos.join(', ')}`,
         ),
       )
