@@ -1,5 +1,6 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow} from 'pg';
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { translatePgError } from '../errors/PostgresErrorTranslator';
 
 const pool = new Pool({
    host: process.env.DB_HOST,
@@ -13,14 +14,20 @@ const pool = new Pool({
    options: `-c search_path=${process.env.DB_SCHEMA}`
 })
 
+pool.on('error', err => console.error('[PG] Error en cliente inactivo del pool:', err))
+
 const transactionContext = new AsyncLocalStorage<PoolClient>();
 
 export async function runQuery<T extends QueryResultRow>(
    sql: string,
    params: any[]
 ): Promise<QueryResult<T>> {
-   const client = transactionContext.getStore()
-   return client ? client.query<T>(sql, params) : pool.query<T>(sql, params)
+   try {
+      const client = transactionContext.getStore()
+      return client ? await client.query<T>(sql, params) : await pool.query<T>(sql, params)
+   } catch (error) {
+      throw translatePgError
+   }
 }
 
 export async function query <T extends QueryResultRow>(
@@ -42,7 +49,8 @@ export async function queryOne<T extends QueryResultRow>(
 export async function runInTransaction<T>(work: ()=> Promise<T>): Promise<T> {
    if (transactionContext.getStore()) return work()
    
-   const client = await pool.connect()
+   const client = await pool.connect().catch(error => { throw translatePgError(error) })
+   
    let releaseError: Error | undefined
    try {
       await client.query('BEGIN')
@@ -60,7 +68,7 @@ export async function runInTransaction<T>(work: ()=> Promise<T>): Promise<T> {
          console.error('Falló el ROLLBACK: ', rollbackError)
          releaseError = rollbackError as Error
       }
-      throw error
+      throw translatePgError(error)
    }
    finally {
       client.release(releaseError)
