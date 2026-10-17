@@ -42,8 +42,7 @@ function fromDatabaseError(e: DatabaseError): AppError {
     sqlstate: e.code,
     constraint: e.constraint,
     table: e.table,
-    column: e.column,
-    detail: e.detail
+    column: e.column
   }
 
   const code = e.code ?? ''
