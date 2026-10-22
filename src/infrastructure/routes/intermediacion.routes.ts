@@ -1,20 +1,19 @@
 import { Router } from 'express'
-import { validar } from '../middlewares/validationMiddleware'
-import { AuthMiddleware } from '../middlewares/authMiddleware'
-import { requireIntermediador, requireEmpresa } from '../middlewares/roleMiddleware'
+import { validate } from '@infrastructure/middlewares/validationMiddleware'
+import { ids } from '@infrastructure/validators/common/common.schemas'
+import { AuthMiddleware } from '@infrastructure/middlewares/authMiddleware'
+import { requireIntermediador, requireEmpresa } from '@infrastructure/middlewares/roleMiddleware'
 import {
-  registrarObservacionSchema,
-  programarEntrevistaSchema,
-  registrarResultadoSchema,
-  registrarDerivacionSchema,
-} from '../validators/intermediacion/intermediacion.schema'
+  actualizarEstadoDerivacionSchema, programarEntrevistaSchema, registrarDerivacionSchema,
+  registrarNotasSchema, registrarObservacionSchema, registrarResultadoSchema,
+} from '@infrastructure/validators/intermediacion/intermediacion.schema'
 import {
   IntermediacionLaboralController,
   ObservacionCandidatoController,
   SeguimientoPostulacionController,
   CoordinacionEntrevistaController,
   DerivacionServicioController,
-} from '../controllers/intermediacion/IntermediacionController'
+} from '@infrastructure/controllers/intermediacion/IntermediacionController'
 
 export function createIntermediacionRoutes(
   auth: AuthMiddleware,
@@ -27,25 +26,25 @@ export function createIntermediacionRoutes(
   const router = Router()
 
   router.post('/intermediadores/:idIntermediador/candidatos/:idCandidato/asignar',
-    auth, requireIntermediador(), asignacion.asignar)
+    auth, requireIntermediador(), validate({ params: ids('idIntermediador', 'idCandidato') }), asignacion.asignar)
 
   router.post('/intermediadores/:idIntermediador/candidatos/:idCandidato/observaciones',
-    auth, requireIntermediador(), validar(registrarObservacionSchema), observacion.registrar)
+    auth, requireIntermediador(), validate({ params: ids('idIntermediador', 'idCandidato'), body: registrarObservacionSchema }), observacion.registrar)
 
   router.post('/intermediadores/:idIntermediador/candidatos/:idCandidato/postulaciones/:idPostulacion/seguimiento',
-    auth, requireIntermediador(), seguimiento.iniciar)
+    auth, requireIntermediador(), validate({ params: ids('idIntermediador', 'idCandidato', 'idPostulacion') }), seguimiento.iniciar)
   router.patch('/intermediadores/:idIntermediador/seguimientos/:id/notas',
-    auth, requireIntermediador(), seguimiento.actualizarNotas)
+    auth, requireIntermediador(), validate({ params: ids('idIntermediador', 'id'), body: registrarNotasSchema }), seguimiento.actualizarNotas)
   router.patch('/intermediadores/:idIntermediador/seguimientos/:id/resultado',
-    auth, requireIntermediador(), validar(registrarResultadoSchema), seguimiento.registrarResultado)
+    auth, requireIntermediador(), validate({ params: ids('idIntermediador', 'id'), body: registrarResultadoSchema }), seguimiento.registrarResultado)
 
   router.post('/postulaciones/:idPostulacion/entrevista',
-    auth, requireEmpresa(), validar(programarEntrevistaSchema), entrevista.programar)
+    auth, requireEmpresa(), validate({ params: ids('idPostulacion'), body: programarEntrevistaSchema }), entrevista.programar)
 
   router.post('/intermediadores/:idIntermediador/candidatos/:idCandidato/seguimientos/:idSeguimiento/derivacion',
-    auth, requireIntermediador(), validar(registrarDerivacionSchema), derivacion.registrar)
+    auth, requireIntermediador(), validate({ params: ids('idIntermediador', 'idCandidato', 'idSeguimiento'), body: registrarDerivacionSchema }), derivacion.registrar)
   router.patch('/intermediadores/:idIntermediador/derivaciones/:id/estado',
-    auth, requireIntermediador(), derivacion.actualizarEstado)
+    auth, requireIntermediador(), validate({ params: ids('idIntermediador', 'id'), body: actualizarEstadoDerivacionSchema }), derivacion.actualizarEstado)
 
   return router
 }

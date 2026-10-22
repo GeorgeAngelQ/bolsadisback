@@ -1,7 +1,12 @@
 import { Router } from 'express'
-import { AuthMiddleware } from '../middlewares/authMiddleware'
-import { requireCandidato, requireIntermediador } from '../middlewares/roleMiddleware'
-
+import { AuthMiddleware } from '@infrastructure/middlewares/authMiddleware'
+import { requireCandidato, requireIntermediador } from '@infrastructure/middlewares/roleMiddleware'
+import { validate } from '@infrastructure/middlewares/validationMiddleware'
+import { ids } from '@infrastructure/validators/common/common.schemas'
+import {
+  buscarVacantesSchema, calificarPostulacionSchema, crearAlertaSchema,
+  crearRecomendacionManualSchema, editarAlertaSchema, postularVacanteSchema,
+} from '@infrastructure/validators/busquedaPostulacion/postulacion.schema'
 import {
   BusquedaVacanteController,
   PostulacionController,
@@ -20,25 +25,25 @@ export function createPostulacionRoutes(
 ): Router {
   const router = Router()
 
-  router.get('/vacantes/buscar', auth, requireCandidato(), busqueda.buscar)
-  router.get('/vacantes/:id', auth, requireCandidato(), busqueda.detalle)
+  router.get('/vacantes/buscar', auth, requireCandidato(), validate({ query: buscarVacantesSchema }), busqueda.buscar)
+  router.get('/vacantes/:id', auth, requireCandidato(), validate({ params: ids('id') }), busqueda.detalle)
 
-  router.post('/candidatos/:idCandidato/vacantes/:idVacante/postulaciones', auth, requireCandidato(), postulacion.postular)
-  router.get('/candidatos/:idCandidato/postulaciones', auth, requireCandidato(), postulacion.listar)
-  router.get('/postulaciones/:id', auth, requireCandidato(), postulacion.detalle)
-  router.delete('/candidatos/:idCandidato/postulaciones/:id', auth, requireCandidato(), postulacion.retirar)
-  router.patch('/candidatos/:idCandidato/postulaciones/:id/calificar', auth, requireCandidato(), postulacion.calificar)
+  router.post('/candidatos/:idCandidato/vacantes/:idVacante/postulaciones', auth, requireCandidato(), validate({ params: ids('idCandidato', 'idVacante'), body: postularVacanteSchema }), postulacion.postular)
+  router.get('/candidatos/:idCandidato/postulaciones', auth, requireCandidato(), validate({ params: ids('idCandidato') }), postulacion.listar)
+  router.get('/postulaciones/:id', auth, requireCandidato(), validate({ params: ids('id') }), postulacion.detalle)
+  router.delete('/candidatos/:idCandidato/postulaciones/:id', auth, requireCandidato(), validate({ params: ids('idCandidato', 'id') }), postulacion.retirar)
+  router.patch('/candidatos/:idCandidato/postulaciones/:id/calificar', auth, requireCandidato(), validate({ params: ids('idCandidato', 'id'), body: calificarPostulacionSchema }), postulacion.calificar)
 
-  router.post('/candidatos/:idCandidato/vacantes-guardadas/:idVacante', auth, requireCandidato(), guardada.guardar)
-  router.delete('/candidatos/:idCandidato/vacantes-guardadas/:idVacante', auth, requireCandidato(), guardada.eliminar)
+  router.post('/candidatos/:idCandidato/vacantes-guardadas/:idVacante', auth, requireCandidato(), validate({ params: ids('idCandidato', 'idVacante') }), guardada.guardar)
+  router.delete('/candidatos/:idCandidato/vacantes-guardadas/:idVacante', auth, requireCandidato(), validate({ params: ids('idCandidato', 'idVacante') }), guardada.eliminar)
 
-  router.post('/candidatos/:idCandidato/alertas', auth, requireCandidato(), alerta.crear)
-  router.put('/candidatos/:idCandidato/alertas/:id', auth, requireCandidato(), alerta.editar)
-  router.patch('/candidatos/:idCandidato/alertas/:id/desactivar', auth, requireCandidato(), alerta.desactivar)
+  router.post('/candidatos/:idCandidato/alertas', auth, requireCandidato(), validate({ params: ids('idCandidato'), body: crearAlertaSchema }), alerta.crear)
+  router.put('/candidatos/:idCandidato/alertas/:id', auth, requireCandidato(), validate({ params: ids('idCandidato', 'id'), body: editarAlertaSchema }), alerta.editar)
+  router.patch('/candidatos/:idCandidato/alertas/:id/desactivar', auth, requireCandidato(), validate({ params: ids('idCandidato', 'id') }), alerta.desactivar)
 
-  router.get('/candidatos/:idCandidato/recomendaciones', auth, requireCandidato(), recomendacion.listar)
-  router.post('/candidatos/:idCandidato/recomendaciones/:idVacante', auth, requireIntermediador(), recomendacion.crearManual)
-  router.patch('/candidatos/:idCandidato/recomendaciones/:id/descartar', auth, requireCandidato(), recomendacion.descartar)
-
+  router.get('/candidatos/:idCandidato/recomendaciones', auth, requireCandidato(), validate({ params: ids('idCandidato') }), recomendacion.listar)
+  router.post('/candidatos/:idCandidato/recomendaciones/:idVacante', auth, requireIntermediador(), validate({ params: ids('idCandidato', 'idVacante'), body: crearRecomendacionManualSchema }), recomendacion.crearManual)
+  router.patch('/candidatos/:idCandidato/recomendaciones/:id/descartar', auth, requireCandidato(), validate({ params: ids('idCandidato', 'id') }), recomendacion.descartar)
+  
   return router
 }
