@@ -26,12 +26,20 @@ export const publicarVacanteSchema = vacanteBase
 
 export const editarVacanteSchema = vacanteBase.partial()
 
+
 export const aprobarVacanteSchema = z.object({
   idUsuarioEmpresa: idEnBody.optional()
 })
 
 export const rechazarVacanteSchema = z.object({
   motivoRechazo: texto(10, 1000),
+  idUsuarioEmpresa: idEnBody.optional(),
+})
+
+export const verificarAjustesSchema = z.object({
+  idCandidato: idEnBody,
+  idIntermediador: idEnBody,
+  idsAjustesVerificados: z.array(idEnBody).min(1).max(100),
   idUsuarioEmpresa: idEnBody.optional(),
 })
 
