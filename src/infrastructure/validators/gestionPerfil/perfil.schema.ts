@@ -1,43 +1,54 @@
 import { z } from 'zod'
+import { texto, fechaISO, idEnBody } from '@infrastructure/validators/common/common.schemas'
+import {
+  NivelEducativo, NivelHabilidad, TipoHabilidad, TipoAjusteRazonable, PrioridadAjuste, TamanoEmpresa,
+} from '@domain/enums/PerfilEnums.enum'
+
+const MAX_ITEMS = 50
+
+export const ajusteRequeridoSchema = z.object({
+  descripcion: texto(1,500),
+  tipo: z.nativeEnum(TipoAjusteRazonable),
+  priordad: z.nativeEnum(PrioridadAjuste),
+})
 
 export const crearPerfilCandidatoSchema = z.object({
-  resumenProfesional: z.string().max(1000).optional(),
-  nivelEducativo: z.enum(['secundaria', 'tecnico', 'universitario', 'posgrado']).optional(),
-  idsTiposDiscapacidad: z.array(z.number().int().positive()).min(1, 'Al menos un tipo de discapacidad'),
-  ajustesRequeridos: z.array(z.object({
-    descripcion: z.string().min(1).max(500),
-    tipo: z.enum(['infraestructura', 'tecnologico', 'organizacional', 'comunicacion']),
-    prioridad: z.enum(['esencial', 'deseable']),
-  })).optional(),
+  resumenProfesional: texto(1,1000).optional(),
+  nivelEducativo: z.nativeEnum(NivelEducativo).optional(),
+  idsTiposDiscapacidad: z.array(idEnBody).min(1, 'Al menos un tipo de discapacidad'),
+  ajustesRequeridos: z.array(ajusteRequeridoSchema).max(MAX_ITEMS).optional(),
 })
 
 export const editarPerfilCandidatoSchema = z.object({
-  resumenProfesional: z.string().max(1000).optional(),
-  nivelEducativo: z.enum(['secundaria', 'tecnico', 'universitario', 'posgrado']).optional(),
+  resumenProfesional: texto(1,1000).optional(),
+  nivelEducativo: z.nativeEnum(NivelEducativo).optional(),
 })
 
 export const habilidadSchema = z.object({
-  nombre: z.string().min(1).max(100),
-  nivel: z.enum(['basico', 'intermedio', 'avanzado']),
-  tipo: z.enum(['tecnica', 'blanda']),
+  nombre: texto(1,100),
+  nivel: z.nativeEnum(NivelHabilidad),
+  tipo: z.nativeEnum(TipoHabilidad),
 })
 
 export const actualizarHabilidadesSchema = z.object({
-  habilidades: z.array(habilidadSchema),
+  habilidades: z.array(habilidadSchema).max(MAX_ITEMS),
 })
 
 export const experienciaSchema = z.object({
-  id: z.number().int().positive().optional(),
-  cargo: z.string().min(1).max(150),
-  empresa: z.string().min(1).max(150),
-  fechaInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  fechaFin: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  id: idEnBody.optional(),
+  cargo: texto(1,150),
+  empresa: texto(1,150),
+  fechaInicio: fechaISO,
+  fechaFin: fechaISO.optional(),
   trabajoActual: z.boolean(),
-  descripcion: z.string().max(1000).optional(),
+  descripcion: texto(1,1000).optional(),
+}).refine(e => !e.fechaFin || e.fechaFin >= e.fechaInicio, {
+  message: 'La fecha de fin no puede ser anterior a la de inicio',
+  path: ['fechaFin'],
 })
 
 export const actualizarExperienciasSchema = z.object({
-  experiencias: z.array(experienciaSchema),
+  experiencias: z.array(experienciaSchema).max(MAX_ITEMS),
 })
 
 export const formacionSchema = z.object({
@@ -51,24 +62,33 @@ export const formacionSchema = z.object({
 })
 
 export const actualizarFormacionesSchema = z.object({
-  formaciones: z.array(formacionSchema),
+  formaciones: z.array(formacionSchema).max(MAX_ITEMS),
+})
+
+export const subirCvSchema = z.object({
+  formato: z.enum(['pdf','docx'])
 })
 
 export const registrarCertificadoSchema = z.object({
-  numeroCarne: z.string().min(1).max(50),
-  fechaEmision: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  fechaVencimiento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  numeroCarne: texto(1,50),
+  fechaEmision: fechaISO,
+  fechaVencimiento: fechaISO.optional(),
+}).refine(c => !c.fechaVencimiento || c.fechaVencimiento >= c.fechaEmision, {
+  message: 'La fecha de vencimiento no puede ser anterior a la fecha de emisión',
+  path: ['fechaVencimiento']
 })
 
-export const crearPerfilEmpresaSchema = z.object({
-  descripcion: z.string().max(2000).optional(),
-  sector: z.string().max(100).optional(),
-  tamano: z.enum(['micro', 'pequena', 'mediana', 'grande']).optional(),
+const perfilEmpresaBase = z.object({
+  descripcion: texto(1,2000).optional(),
+  sector: texto(1,100).optional(),
+  tamano: z.nativeEnum(TamanoEmpresa).optional(),
   tipoEntidad: z.enum(['privada', 'publica']),
-  urlLogo: z.string().url().optional(),
-  sitioWeb: z.string().url().optional(),
-  politicaInclusion: z.string().max(2000).optional(),
-  totalTrabajadores: z.number().int().positive('Debe ser mayor a cero'),
+  urlLogo: z.string().trim().url().max(500).optional(),
+  sitioWeb: z.string().trim().url().max(500).optional(),
+  politicaInclusion: texto(1,200).optional(),
+  totalTrabajadores: z.number().int().positive('Debe ser mayor a cero')
 })
 
-export const editarPerfilEmpresaSchema = crearPerfilEmpresaSchema.partial()
+
+export const crearPerfilEmpresaSchema = perfilEmpresaBase
+export const editarPerfilEmpresaSchema = perfilEmpresaBase.partial()
