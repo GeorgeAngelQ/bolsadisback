@@ -1,43 +1,46 @@
 import { z } from 'zod'
+import { texto, fechaISO, idEnBody } from '@infrastructure/validators/common/common.schemas'
+import { TipoAjusteRazonable } from '@domain/enums/PerfilEnums.enum'
+import { ModalidadTrabajo } from '@domain/enums/VacanteEnums.enum'
 
-export const publicarVacanteSchema = z.object({
-  titulo: z.string().min(2).max(200),
-  descripcion: z.string().min(10),
-  requisitos: z.string().optional(),
-  categoriaLaboral: z.string().max(100).optional(),
-  sectorEconomico: z.string().max(100).optional(),
-  modalidad: z.enum(['presencial', 'remoto', 'hibrido']),
-  remuneracion: z.number().positive().optional(),
-  ubicacion: z.string().max(150).optional(),
-  fechaCierre: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  idsTiposDiscapacidad: z.array(z.number().int().positive()).min(1),
-  ajustesDisponibles: z.array(z.object({
-    descripcion: z.string().min(1).max(500),
-    tipo: z.enum(['infraestructura', 'tecnologico', 'organizacional', 'comunicacion']),
-  })).min(1),
+export const ajusteDisponibleSchema = z.object({
+  descripcion: texto(1,500),
+  tipo: z.nativeEnum(TipoAjusteRazonable),
 })
 
-export const editarVacanteSchema = publicarVacanteSchema.partial().omit({
-  idsTiposDiscapacidad: true,
-  ajustesDisponibles: true,
-}).extend({
-  idsTiposDiscapacidad: z.array(z.number().int().positive()).min(1).optional(),
-  ajustesDisponibles: z.array(z.object({
-    descripcion: z.string().min(1).max(500),
-    tipo: z.enum(['infraestructura', 'tecnologico', 'organizacional', 'comunicacion']),
-  })).min(1).optional(),
+export const vacanteBase = z.object({
+  titulo: texto(2,200),
+  descripcion: texto(10,10000),
+  requisitos: texto(1,5000).optional(),
+  categoriaLaboral: texto(1,100).optional(),
+  sectorEconomico: texto(1,100).optional(),
+  modalidad: z.nativeEnum(ModalidadTrabajo),
+  remuneracion: z.number().positive().optional(),
+  ubicacion: texto(1,150).optional(),
+  fechaCierre: fechaISO.optional(),
+  idsTiposDiscapacidad: z.array(idEnBody).min(1).max(20),
+  ajustesDisponibles: z.array(ajusteDisponibleSchema).min(1).max(50),
+})
+
+export const publicarVacanteSchema = vacanteBase
+
+export const editarVacanteSchema = vacanteBase.partial()
+
+export const aprobarVacanteSchema = z.object({
+  idUsuarioEmpresa: idEnBody.optional()
 })
 
 export const rechazarVacanteSchema = z.object({
-  motivoRechazo: z.string().min(10, 'El motivo debe tener al menos 10 caracteres').max(1000),
+  motivoRechazo: texto(10, 1000),
+  idUsuarioEmpresa: idEnBody.optional(),
 })
 
 export const registrarSancionSchema = z.object({
-  motivo: z.string().min(10).max(1000),
-  normativaInfringida: z.string().max(255).optional(),
+  motivo: texto(10,1000),
+  normativaInfringida: texto(1,255).optional(),
 })
 
 export const reporteContenidoSchema = z.object({
-  motivo: z.string().min(1).max(200),
-  descripcion: z.string().min(10, 'Describe brevemente el problema').max(1000),
+  motivo: texto(1,200),
+  descripcion: texto(10, 1000),
 })

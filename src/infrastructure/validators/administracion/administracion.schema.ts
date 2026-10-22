@@ -1,32 +1,36 @@
 import { z } from 'zod';
+import { texto, fechaISO, fechaHoraISO, paginacion } from '@infrastructure/validators/common/common.schemas'
 
 export const publicarContenidoSchema = z.object({
-  titulo: z.string().min(2).max(255),
-  cuerpo: z.string().min(10),
+  titulo: texto(2,255),
+  cuerpo: texto(10,50000),
   tipo: z.enum(['guia', 'noticia', 'recurso', 'normativa']),
 })
 
+export const editarContenidoSchema = publicarContenidoSchema.partial()
+
 export const actualizarConfigAccesibilidadSchema = z.object({
   nivelWCAG: z.enum(['A', 'AA', 'AAA']).optional(),
-  contrastesDisponibles: z.string().optional(),
-  tamanosTextoDisponibles: z.string().optional(),
+  contrastesDisponibles: texto(1,500).optional(),
+  tamanosTextoDisponibles: texto(1,500).optional(),
   soporteLSP: z.boolean().optional(),
   subtitulosAutomaticos: z.boolean().optional(),
 })
 
 export const programarMantenimientoSchema = z.object({
-  fechaInicio: z.string().datetime('Formato datetime inválido'),
+  fechaInicio: fechaHoraISO,
   duracionEstimadaMinutos: z.number().int().positive(),
-  motivo: z.string().min(10).max(500),
+  motivo: texto(10,500),
 })
+
+const fechaOFechaHora = z.union([fechaISO,fechaHoraISO])
 
 export const filtrosAuditoriaSchema = z.object({
   idUsuario: z.coerce.number().int().positive().optional(),
-  modulo: z.string().optional(),
-  accion: z.string().optional(),
-  fechaDesde: z.string().datetime().optional(),
-  fechaHasta: z.string().datetime().optional(),
+  modulo: texto(1,50).optional(),
+  accion: texto(1,100).optional(),
+  fechaDesde: fechaOFechaHora.optional(),
+  fechaHasta: fechaOFechaHora.optional(),
   resultado: z.enum(['exitoso', 'fallido']).optional(),
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(50),
+  ...paginacion(50,100),
 })

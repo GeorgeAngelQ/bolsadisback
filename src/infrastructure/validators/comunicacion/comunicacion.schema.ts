@@ -1,18 +1,28 @@
 import { z } from 'zod';
+import { texto, idEnBody } from '@infrastructure/validators/common/common.schemas'
 
-export const enviarMensajeSchema = z.object({
-  contenido: z.string().min(1, 'El mensaje no puede estar vacío').max(5000),
+export const iniciarConversacionSchema = z.object({
+  idPostulacion: idEnBody,
+  tipoEmisor: z.enum(['candidato', 'empresa', 'intermediador']),
+  idUsuarioReceptor: idEnBody,
 })
 
-export const enviarMasivo = z.object({
-  idsCandidatos: z.array(z.number().int().positive()).min(1, 'Selecciona al menos un candidato'),
-  contenido: z.string().min(1).max(5000),
+export const enviarMensajeSchema = z.object({
+  contenido: texto(1,5000),
+  idDestinatario: idEnBody,
+})
+
+export const enviarMasivoSchema = z.object({
+  idsCandidatos: z.array(idEnBody).min(1, 'Selecciona al menos un candidato').max(500),
+  contenido: texto(1,5000),
 })
 
 export const crearPlantillaSchema = z.object({
-  nombre: z.string().min(2).max(150),
-  asunto: z.string().max(255).optional(),
-  cuerpo: z.string().min(1, 'El cuerpo no puede estar vacío'),
-  evento: z.string().min(1, 'Debe asociar la plantilla a un evento'),
-  rolesDestino: z.string().max(255).optional(),
+  nombre: texto(2,150),
+  asunto: texto(2,255).optional(),
+  cuerpo: texto(1,10000),
+  evento: texto(1,100),
+  rolesDestino: texto(1,255).optional(),
 })
+
+export const editarPlantillaSchema = crearPlantillaSchema.partial()

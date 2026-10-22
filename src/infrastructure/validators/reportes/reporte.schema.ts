@@ -1,16 +1,31 @@
 import { z } from 'zod';
+import { texto, periodo, idEnBody, idEnUrl } from '@infrastructure/validators/common/common.schemas'
 
 export const generarReporteCuotaSchema = z.object({
-  periodo: z.string().regex(/^\d{4}(-\d{2})?$/, 'Formato YYYY o YYYY-MM'),
+  periodo,
+})
+
+export const generarReporteGestionSchema = z.object({
+  periodo,
 })
 
 export const generarReporteGlobalSchema = z.object({
-  periodo: z.string().regex(/^\d{4}(-\d{2})?$/),
-  idsTiposDiscapacidad: z.array(z.number().int().positive()).optional(),
-  sector: z.string().optional(),
-  distrito: z.string().optional(),
+  periodo,
+  idsTiposDiscapacidad: z.array(idEnBody).max(20).optional(),
+  sector: texto(1,100).optional(),
+  distrito: texto(1,100).optional(),
 })
 
-export const exportarReporteSchema = z.object({
-  formato: z.enum(['pdf', 'excel']),
+export const compararReportesSchema = z.object({
+  periodoActual: periodo,
+  periodoAnterior: periodo,
+})
+
+export const consolidadoQuerySchema = z.object({ 
+  periodo 
+})
+
+export const exportarParamsSchema = z.object({
+  tipo: z.enum(['cuota', 'gestion', 'global']),
+  id: idEnUrl,
 })
