@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express'
-import { AuthRequest } from '../../middlewares/authMiddleware'
+import { AuthRequest } from '@infrastructure/middlewares/authMiddleware'
 import { Modulo2Container } from '@di/gestionPerfil.container'
+import { ValidationError } from '@shared/errors/ValidationError'
 
 export class PerfilCandidatoController {
   constructor(private readonly c: Modulo2Container) {}
@@ -65,8 +66,14 @@ export class CurriculumVitaeController {
   subir = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.file) {
-        res.status(400).json({ error: 'Archivo requerido' })
-        return
+        return next(
+          new ValidationError('Archivo requerido', {
+            fields: [{ 
+              campo: 'archivo',
+              mensaje: 'Campo requerido' 
+            }],
+          }),
+        )
       }
       const result = await this.c.subirCV.execute({
         idCandidato: Number(req.params.idCandidato),
