@@ -46,7 +46,7 @@ export class PostgresContenidoInformativoRepository implements IContenidoInforma
    }
 
    async findAll(soloVisibles?: boolean): Promise<ContenidoInformativo[]> {
-      const where = soloVisibles ? `WHEREEE visible = true` : ``
+      const where = soloVisibles ? `WHERE visible = true` : ``
       const rows = await query<any>(`
          SELECT
             id_contenido,
@@ -205,7 +205,7 @@ export class PostgresEventoAuditoriaRepository implements IEventoAuditoriaReposi
             COUNT(*) AS total
          FROM evento_auditoria
          ${where}`, 
-         [params]
+         params
       )
       const total = countRow?.total ?? 0
       const rows = await queryOne<any>(`
@@ -250,7 +250,9 @@ export class PostgresEventoAuditoriaRepository implements IEventoAuditoriaReposi
          FROM evento_auditoria
          WHERE id_usuario = $1
          ORDER BY fecha_hora
-         LIMIT 100`)
+         LIMIT 100`,
+         [idUsuario]
+      )
       return rows.map(this.toEntity)
    }
 

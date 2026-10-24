@@ -61,7 +61,7 @@ export class PostgresConversacionRepository implements IConversacionRepository{
    async findByParticipantes(idUsuario1: number, idUsuario2: number): Promise<Conversacion | null> {
       const row = await queryOne<any>(`
          SELECT
-            c,id_conversacion,
+            c.id_conversacion,
             c.id_postulacion,
             c.fecha_creacion,
             c.fecha_ultimo_mensaje,
@@ -80,7 +80,7 @@ export class PostgresConversacionRepository implements IConversacionRepository{
    async findByIdUsuario(idUsuario: number): Promise<Conversacion[]> {
       const rows = await query<any>(`
           SELECT
-            c,id_conversacion,
+            c.id_conversacion,
             c.id_postulacion,
             c.fecha_creacion,
             c.fecha_ultimo_mensaje,
@@ -89,8 +89,8 @@ export class PostgresConversacionRepository implements IConversacionRepository{
          FROM conversacion c
          INNER JOIN conversacion_participante cp ON cp.id_conversacion = c.id_conversacion
          WHERE cp.id_usuario = $1
-         ORDER BY fecha_ultimo_mensaje
-         DESC NULL LAST`, 
+         ORDER BY c.fecha_ultimo_mensaje
+         DESC NULLS LAST`, 
          [idUsuario]
       )
       return rows.map(this.toEntity)
@@ -190,7 +190,7 @@ export class PostgresMensajeInternoRepository implements IMensajeInternoReposito
          SELECT DISTINCT 
             m.id_conversacion, 
             cp.id_usuario AS id_usuario_empresa
-         FROM mensaje_interno mi
+         FROM mensaje_interno m
          INNER JOIN conversacion_participante cp ON cp.id_conversacion = m.id_conversacion
          INNER JOIN empresa_empleadora e ON e.id_usuario = cp.id_usuario
          WHERE m.fecha_envio < NOW() - INTERVAL '${diasHabiles} days' AND m.leido = false`

@@ -383,7 +383,9 @@ export class PostgresDashboardIndicadoresRepository implements IDashboardIndicad
             tasa_intermediacion
          FROM dashboard_indicadores
          WHERE id_administrador = $1
-         LIMIT 1`)
+         LIMIT 1`,
+         [idAdministrador]
+      )
       return row ? this.toEntity(row) : null
    }
 
