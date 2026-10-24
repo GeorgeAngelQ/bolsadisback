@@ -4,7 +4,7 @@ import { ids } from '@infrastructure/validators/common/common.schemas'
 const MODULO = 'Módulo 2: Gestión de Perfil'
 
 documentar({
-  metodo: 'post',
+  metodo: 'patch',
   ruta: '/perfiles/{idPerfil}/certificados/verificar',
   modulo: MODULO,
   seccion: 'Certificado de discapacidad del candidato',
