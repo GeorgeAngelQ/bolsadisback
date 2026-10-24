@@ -23,8 +23,8 @@
       "@application/*": ["./src/application/*"],
       "@infrastructure/*": ["./src/infrastructure/*"],
       "@shared/*": ["./src/shared/*"],
-      "@scripts/": ["./src/scripts/*"],
-    },
+      "@scripts/*": ["./src/scripts/*"]
+    }
   },
   "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "dist", "tests"]

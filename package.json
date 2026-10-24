@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "nodemon --exec \"ts-node -r tsconfig-paths/register\" ./src/main.ts",
     "start": "tsx ./src/main.ts",
-    "repos:check": "ts-node --transpile-only -r tsconfig-paths/register @scripts/check-repos.ts",
-    "docs:check": "ts-node --transpile-only -r tsconfig-paths/register @scripts/check-docs.ts"
+    "repos:check": "ts-node --transpile-only -r tsconfig-paths/register ./src/scripts/check-repos.ts",
+    "docs:check": "ts-node --transpile-only -r tsconfig-paths/register ./src/scripts/check-docs.ts"
   },
   "keywords": [],
   "author": "",
