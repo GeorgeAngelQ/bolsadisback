@@ -7,7 +7,7 @@ documentar({
   metodo: 'post',
   ruta: '/auth/cuentas/intermediadores',
   modulo: MODULO,
-  seccion: 'Gestion de Cuentas',
+  seccion: 'Gestión de Cuentas',
   resumen: 'Crear cuenta de Intermediador Laboral',
   descripcion: 'Permite al administrador crear una cuenta de Intermediador Laboral',
   roles: ['admin', 'superadmin'],

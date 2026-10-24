@@ -8,7 +8,7 @@ documentar({
   metodo: 'get',
   ruta: '/auth/recuperar-contrasena/{token}',
   modulo: MODULO,
-  seccion: 'Recuperar Contraseña',
+  seccion: 'Autenticación',
   resumen: 'Validar token de recuperación',
   descripcion: 'Comprueba que el token recibido por correo siga vigente antes de mostrar el formulario de nueva contraseña.',
   publico: true,

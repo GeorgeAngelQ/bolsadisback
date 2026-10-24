@@ -7,7 +7,7 @@ documentar({
   metodo: 'post',
   ruta: '/auth/roles',
   modulo: MODULO,
-  seccion: 'Gestion de Cuentas',
+  seccion: 'Gestión de Roles',
   resumen: 'Crear rol',
   descripcion: 'Permite al administrador crear un nuevo rol',
   roles: ['admin', 'superadmin'],

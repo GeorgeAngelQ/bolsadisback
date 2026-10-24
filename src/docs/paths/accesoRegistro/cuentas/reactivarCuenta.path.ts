@@ -7,7 +7,7 @@ documentar({
   metodo: 'patch',
   ruta: '/auth/cuentas/{id}/reactivar',
   modulo: MODULO,
-  seccion: 'Gestion de Cuentas',
+  seccion: 'Gestión de Cuentas',
   resumen: 'Reactivar cuenta',
   descripcion: 'Permite al administrador reactivar alguna cuenta con estado suspendido',
   roles: ['admin', 'superadmin'],

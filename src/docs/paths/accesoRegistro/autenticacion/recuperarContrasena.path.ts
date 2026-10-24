@@ -7,7 +7,7 @@ documentar({
   metodo: 'patch',
   ruta: '/auth/recuperar-contrasena',
   modulo: MODULO,
-  seccion: 'Recuperar Contraseña',
+  seccion: 'Autenticación',
   resumen: 'Establecer nueva contraseña',
   descripcion: 'Cambia la contraseña usando el token de recuperación. La nueva contraseña debe tener entre 8 y 72 caracteres.',
   publico: true,

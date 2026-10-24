@@ -8,7 +8,7 @@ documentar({
   metodo: 'put',
   ruta: '/auth/roles/{id}/permisos',
   modulo: MODULO,
-  seccion: 'Gestion de Roles',
+  seccion: 'Gestión de Roles',
   resumen: 'Asignar permisos',
   descripcion: 'Permite al administrador asignar un permiso diferente a otra cuenta',
   roles: ['admin', 'superadmin'],

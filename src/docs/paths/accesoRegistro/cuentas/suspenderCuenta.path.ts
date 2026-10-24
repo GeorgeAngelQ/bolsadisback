@@ -8,7 +8,7 @@ documentar({
   metodo: 'patch',
   ruta: '/auth/cuentas/{id}/suspender',
   modulo: MODULO,
-  seccion: 'Gestion de Cuentas',
+  seccion: 'Gestión de Cuentas',
   resumen: 'Suspender cuenta',
   descripcion: 'Permite al administrador suspender una cuenta indicando el motivo de la suspensión.',
   roles: ['admin', 'superadmin'],
