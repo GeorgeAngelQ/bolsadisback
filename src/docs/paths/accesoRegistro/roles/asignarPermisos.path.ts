@@ -1,35 +1,22 @@
-import { registry } from '../../../openapiRegistry'
-import { asignarPermisosSchema } from '@infrastructure/validators/accesoRegistro/accesoRegistro.schema'
+import { asignarPermisosSchema } from '@infrastructure/validators/accesoRegistro/accesoRegistro.schema';
+import { documentar, RespuestaDatos } from '@docs/helpers/documentar'
+import { ids } from '@infrastructure/validators/common/common.schemas'
 
-registry.registerPath({
-  method: 'put',
-  path: '/auth/roles',
-  tags: ['Módulo 1: Acceso y Registro',
-          'Gestion de Roles'
-        ],
-  summary: 'Asignar permisos',
+const MODULO = 'Módulo 1: Acceso y Registro'
 
-  description: 'Permite al administrador asignar permisos a los roles',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: asignarPermisosSchema
-        },
-      },
-    },
+documentar({
+  metodo: 'put',
+  ruta: '/auth/roles/{id}/permisos',
+  modulo: MODULO,
+  seccion: 'Gestion de Roles',
+  resumen: 'Asignar permisos',
+  descripcion: 'Permite al administrador asignar un permiso diferente a otra cuenta',
+  roles: ['admin', 'superadmin'],
+  params: ids('id'),
+  body: asignarPermisosSchema,
+  exito: { 
+    descripcion: 'Permisos asignados correctamente a la cuenta', 
+    schema: RespuestaDatos 
   },
-  security: [
-    {
-      bearerAuth: [],
-    },
-  ],
-  responses: {
-    200: {
-      description: 'Roles listados correctamente',
-    },
-    404: {
-      description: 'Roles no encontrados',
-    },
-  },
+  errores: [400, 401,403, 413, 422],
 })

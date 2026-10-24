@@ -1,34 +1,20 @@
-import { registry } from '../../../openapiRegistry'
+import { documentar, RespuestaDatos } from '@docs/helpers/documentar'
 import { guardarPreferenciasSchema } from '@infrastructure/validators/accesoRegistro/accesoRegistro.schema'
 
-registry.registerPath({
-  method: 'post',
-  path: '/auth/accesibilidad',
-  tags: ['Módulo 1: Acceso y Registro',
-          'Accesibilidad'
-        ],
-  summary: 'Guardar preferencias de accesibilidad',
-  description: 'Permite al usuario guardar sus preferencias de accesibilidad',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema:  guardarPreferenciasSchema
-        },
-      },
-    },
+const MODULO = 'Módulo 1: Acceso y Registro'
+
+documentar({
+  metodo: 'put',
+  ruta: '/auth/accesibilidad',
+  modulo: MODULO,
+  seccion: 'Accesibilidad',
+  resumen: 'Guardar preferencias de accesibilidad',
+  descripcion: 'Permite al usuario guardar sus preferencias de accesibilidad',
+  publico: true,
+  params: guardarPreferenciasSchema,
+  exito: { 
+    descripcion: 'Preferencias de accesibilidad guardadas correctamente', 
+    schema: RespuestaDatos 
   },
-  security: [
-    {
-      bearerAuth: [],
-    },
-  ],
-  responses: {
-    200: {
-      description: 'Preferencias de accesibilidad guardadas correctamente',
-    },
-    400: {
-      description: 'Datos inválidos',
-    },
-  },
+  errores: [400, 422],
 })

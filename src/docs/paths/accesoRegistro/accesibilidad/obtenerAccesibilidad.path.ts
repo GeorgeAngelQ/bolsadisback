@@ -1,24 +1,18 @@
-import { registry } from '../../../openapiRegistry'
+import { documentar, RespuestaDatos } from '@docs/helpers/documentar'
 
-registry.registerPath({
-  method: 'post',
-  path: '/auth/accesibilidad',
-  tags: ['Módulo 1: Acceso y Registro',
-          'Accesibilidad'
-        ],
-  summary: 'Obtener la accesibilidad de la cuenta',
-  description: 'Permite al administrador obtener la accesibilidad de una cuenta',
-  security: [
-    {
-      bearerAuth: [],
-    },
-  ],
-  responses: {
-    200: {
-      description: 'Cuenta de Intermediador Laboral creada correctamente',
-    },
-    400: {
-      description: 'Datos inválidos',
-    },
+const MODULO = 'Módulo 1: Acceso y Registro'
+
+documentar({
+  metodo: 'get',
+  ruta: '/auth/accesibilidad',
+  modulo: MODULO,
+  seccion: 'Accesibilidad',
+  resumen: 'Obtener la accesibilidad de la cuenta',
+  descripcion: 'Permite al usuario obtener la accesibilidad de una cuenta',
+  publico: true,
+  exito: { 
+    descripcion: 'Accesibilidad retornada correctamente', 
+    schema: RespuestaDatos 
   },
+  errores: [400, 422],
 })

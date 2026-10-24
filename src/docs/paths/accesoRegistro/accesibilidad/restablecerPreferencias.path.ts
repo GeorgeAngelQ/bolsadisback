@@ -1,24 +1,18 @@
-import { registry } from '../../../openapiRegistry'
+import { documentar, RespuestaMensaje } from '@docs/helpers/documentar'
 
-registry.registerPath({
-  method: 'post',
-  path: '/auth/accesibilidad',
-  tags: ['Módulo 1: Acceso y Registro',
-          'Accesibilidad'
-        ],
-  summary: 'Restablecer preferencias de accesibilidad de la cuenta',
-  description: 'Permite al administrador restablecer las preferencias de accesibilidad de una cuenta',
-  security: [
-    {
-      bearerAuth: [],
-    },
-  ],
-  responses: {
-    200: {
-      description: 'Preferencias de accesibilidad restablecidas correctamente',
-    },
-    400: {
-      description: 'Datos inválidos',
-    },
+const MODULO = 'Módulo 1: Acceso y Registro'
+
+documentar({
+  metodo: 'delete',
+  ruta: '/auth/accesibilidad',
+  modulo: MODULO,
+  seccion: 'Accesibilidad',
+  resumen: 'Restablece la accesibilidad de la cuenta',
+  descripcion: 'Permite restablecer la accesibilidad de la misma cuenta',
+  publico: true,
+  exito: { 
+    descripcion: 'Preferencias de accesibilidad restablecidas correctamente', 
+    schema: RespuestaMensaje 
   },
+  errores: [400, 422],
 })
