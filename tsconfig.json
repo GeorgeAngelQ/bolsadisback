@@ -16,17 +16,16 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "baseUrl": ".",
     "paths": {
-      "@docs/*": ["src/docs/*"],
-      "@di/*": ["src/di/*"],
-      "@domain/*": ["src/domain/*"],
-      "@application/*": ["src/application/*"],
-      "@infrastructure/*": ["src/infrastructure/*"],
-      "@shared/*": ["src/shared/*"]
+      "@docs/*": ["./src/docs/*"],
+      "@di/*": ["./src/di/*"],
+      "@domain/*": ["./src/domain/*"],
+      "@application/*": ["./src/application/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@scripts/": ["./src/scripts/*"],
     },
-    "ignoreDeprecations": "6.0",
   },
-  "include": ["src/**/*.ts"],
+  "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "dist", "tests"]
 }
