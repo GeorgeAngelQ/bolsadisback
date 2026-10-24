@@ -69,14 +69,17 @@ export const subirCvSchema = z.object({
   formato: z.enum(['pdf','docx'])
 })
 
-export const registrarCertificadoSchema = z.object({
-  numeroCarne: texto(1,50),
+export const certificadoCampos = z.object({
+  numeroCarne: texto(1, 50),
   fechaEmision: fechaISO,
   fechaVencimiento: fechaISO.optional(),
-}).refine(c => !c.fechaVencimiento || c.fechaVencimiento >= c.fechaEmision, {
-  message: 'La fecha de vencimiento no puede ser anterior a la fecha de emisión',
-  path: ['fechaVencimiento']
 })
+
+export const registrarCertificadoSchema = certificadoCampos
+  .refine(c => !c.fechaVencimiento || c.fechaVencimiento >= c.fechaEmision, {
+    message: 'La fecha de vencimiento no puede ser anterior a la de emisión',
+    path: ['fechaVencimiento'],
+  })
 
 const perfilEmpresaBase = z.object({
   descripcion: texto(1,2000).optional(),
