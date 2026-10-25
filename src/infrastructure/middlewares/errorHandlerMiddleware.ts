@@ -15,10 +15,8 @@ export function errorHandlerMiddleware(
 
   report(err, status, req as AuthRequest, requestId)
 
-  if  (status>=500 && requestId) {
-    body.requestId = requestId
-    res.status(status).json(body)
-  }
+  if  (status>=500 && requestId) body.requestId = requestId
+  res.status(status).json(body)
 
   function report(
     err: unknown, 
