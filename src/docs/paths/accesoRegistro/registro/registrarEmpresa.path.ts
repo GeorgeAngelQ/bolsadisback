@@ -8,7 +8,7 @@ documentar({
   ruta: '/auth/empresas/registro',
   modulo: MODULO,
   seccion: 'Registro',
-  resumen: 'Registrar emmpresa',
+  resumen: 'Registrar empresa',
   descripcion: 'Permite crear la cuenta de empresa empleadora con el rol de empresa',
   publico: true,
   body: registrarEmpresaSchema,
